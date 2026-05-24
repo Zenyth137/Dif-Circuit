@@ -16,7 +16,7 @@ Reference: VLSI.tex Section 3.2
 import torch
 import torch.nn as nn
 import numpy as np
-from typing import Optional, Callable
+from typing import Optional, Callable, Tuple
 from .denoiser import DenoiserNet
 from .energy import EnergyFunction
 
@@ -66,12 +66,17 @@ class DiffusionPlacer(nn.Module):
                  # Canvas geometry (for clipping + variance calibration)
                  canvas_width: float = 1000.0,
                  canvas_height: float = 1000.0,
+                 # Gradient safety
+                 max_energy_grad: float = 50.0,  # tanh saturation ceiling
+                 use_dynamic_weights: bool = True,
                  ):
         super().__init__()
         self.num_modules = num_modules
         self.timesteps = timesteps
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
+        self.max_energy_grad = max_energy_grad
+        self.use_dynamic_weights = use_dynamic_weights
 
         # Denoiser network
         self.denoiser = DenoiserNet(
@@ -79,13 +84,15 @@ class DiffusionPlacer(nn.Module):
             num_layers=num_layers,
         )
 
-        # Energy function for guidance
+        # Energy function for guidance (weights will be set per-step)
         self.energy_fn = EnergyFunction(
             lambda_overlap=lambda_overlap,
             lambda_hpwl=lambda_hpwl,
             hpwl_temperature=hpwl_temperature,
         )
         self.guidance_scale = guidance_scale
+        self.base_lambda_overlap = lambda_overlap
+        self.base_lambda_hpwl = lambda_hpwl
 
         # Beta schedule
         if beta_schedule == "cosine":
@@ -115,6 +122,32 @@ class DiffusionPlacer(nn.Module):
         x_t = sqrt_alpha * x_0 + sqrt_one_minus * noise
         return x_t, noise
 
+    def _get_dynamic_weights(self, t_idx: int, start_t: int) -> Tuple[float, float]:
+        """
+        Dynamic weight annealing for energy guidance.
+
+        Early steps (high noise): λ_hpwl dominates → guide toward low-wirelength topology
+        Late steps (low noise):  λ_overlap dominates → eliminate remaining overlaps
+
+        Uses cosine schedule: overlap weight ramps from 0→1, HPWL weight ramps from 1→0.
+        """
+        if not self.use_dynamic_weights:
+            return self.base_lambda_overlap, self.base_lambda_hpwl
+
+        # Progress: 0.0 (start) → 1.0 (end)
+        progress = 1.0 - (t_idx / max(start_t, 1))
+        progress = max(0.0, min(1.0, progress))
+
+        # Cosine annealing
+        w_overlap_frac = 0.5 * (1.0 - np.cos(np.pi * progress))  # 0→1
+        w_hpwl_frac = 0.5 * (1.0 + np.cos(np.pi * progress))     # 1→0
+
+        lambda_ovlp = self.base_lambda_overlap * w_overlap_frac
+        lambda_hpwl = self.base_lambda_hpwl * w_hpwl_frac
+
+        return lambda_ovlp, lambda_hpwl
+
+    @torch.no_grad()
     def sample(self,
                x_k: torch.Tensor,
                module_sizes: torch.Tensor,
@@ -125,10 +158,15 @@ class DiffusionPlacer(nn.Module):
                num_steps: Optional[int] = None,
                return_trajectory: bool = False) -> torch.Tensor:
         """
-        Reverse diffusion sampling with energy guidance.
+        Reverse diffusion sampling with clipped energy guidance
+        and dynamic weight annealing.
 
         Starts from X_K (coarse MDP output with noise/overlap) and denoises
         to produce legalized placement X_0.
+
+        Dynamic weights: λ_hpwl starts high (guide topology), λ_overlap
+        ramps up late (eliminate remaining overlaps). Energy gradient is
+        clipped to prevent "Big Bang" explosion from degenerate inputs.
 
         Args:
             x_k: (N, 2) initial placement (from MDP Phase 1)
@@ -136,28 +174,27 @@ class DiffusionPlacer(nn.Module):
             edge_index: (2, E) netlist edges
             edge_attr: (E, 1) edge weights
             nets: optional list of nets for HPWL energy
-            start_t: timestep to start reverse process (default: K = timesteps//2)
-            num_steps: number of denoising steps (for DDIM-like sampling)
+            start_t: timestep to start reverse process
+            num_steps: number of denoising steps
             return_trajectory: if True, return list of all intermediate X_t
 
         Returns:
             x_0: (N, 2) final legalized placement
         """
         device = x_k.device
-        N = x_k.size(0)
 
         if start_t is None:
-            start_t = self.timesteps // 2  # K: MDP output ~= X_K
+            start_t = self.timesteps // 2
 
         if num_steps is None:
             step_indices = list(range(start_t, 0, -1))
         else:
-            # Uniformly sample num_steps from [start_t, 1]
             step_indices = np.linspace(start_t, 1, num_steps).astype(int).tolist()
-            step_indices = list(dict.fromkeys(step_indices))  # remove duplicates
+            step_indices = list(dict.fromkeys(step_indices))
 
         x_t = x_k.clone()
         trajectory = [x_t.clone()] if return_trajectory else None
+        total_steps = len(step_indices)
 
         for i, t_idx in enumerate(step_indices):
             t = torch.tensor([t_idx], device=device, dtype=torch.long)
@@ -165,28 +202,39 @@ class DiffusionPlacer(nn.Module):
             alpha_cumprod_t = self.alphas_cumprod[t_idx]
             beta_t = self.betas[t_idx]
 
-            # Denoising step (no grad through denoiser at inference)
-            with torch.no_grad():
-                eps_pred = self.denoiser(x_t, t, module_sizes, edge_index, edge_attr)
-                coef = (1 - alpha_t) / torch.sqrt(1 - alpha_cumprod_t)
-                x_t = (1.0 / torch.sqrt(alpha_t)) * (x_t - coef * eps_pred)
+            # --- Dynamic weight annealing ---
+            lambda_ovlp, lambda_hpwl = self._get_dynamic_weights(t_idx, start_t)
+            self.energy_fn.lambda_overlap = lambda_ovlp
+            self.energy_fn.lambda_hpwl = lambda_hpwl
 
-            # Energy guidance needs autograd on positions only
+            # Denoising step
+            eps_pred = self.denoiser(x_t, t, module_sizes, edge_index, edge_attr)
+            coef = (1 - alpha_t) / torch.sqrt(1 - alpha_cumprod_t)
+            x_t = (1.0 / torch.sqrt(alpha_t)) * (x_t - coef * eps_pred)
+
+            # Energy guidance with gradient clipping
             if self.guidance_scale > 0 and nets is not None:
                 x_for_energy = x_t.detach().requires_grad_(True)
                 energy_grad = self.energy_fn.gradient(
                     x_for_energy, module_sizes, nets,
                 )
-                with torch.no_grad():
-                    x_t = x_t - self.guidance_scale * energy_grad
+                # --- GRADIENT CLIPPING: prevent "Big Bang" ---
+                # Smooth tanh saturation — no dead zones, everywhere differentiable.
+                # |grad| << max_norm → linear (no distortion)
+                # |grad| >> max_norm → asymptotes to ±max_norm (graceful saturation)
+                energy_grad = self.max_energy_grad * torch.tanh(
+                    energy_grad / self.max_energy_grad
+                )
+                x_t = x_t - self.guidance_scale * energy_grad
 
-            with torch.no_grad():
-                if t_idx > 1:
-                    sigma_t = torch.sqrt(beta_t)
-                    x_t = x_t + torch.randn_like(x_t) * sigma_t
+            # Noise injection
+            if t_idx > 1:
+                sigma_t = torch.sqrt(beta_t)
+                x_t = x_t + torch.randn_like(x_t) * sigma_t
 
-                x_t[:, 0] = torch.clamp(x_t[:, 0], 0.0, self.canvas_width)
-                x_t[:, 1] = torch.clamp(x_t[:, 1], 0.0, self.canvas_height)
+            # Canvas bounds
+            x_t[:, 0] = torch.clamp(x_t[:, 0], 0.0, self.canvas_width)
+            x_t[:, 1] = torch.clamp(x_t[:, 1], 0.0, self.canvas_height)
 
             if return_trajectory:
                 trajectory.append(x_t.clone())

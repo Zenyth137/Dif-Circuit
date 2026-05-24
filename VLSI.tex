@@ -12,6 +12,16 @@
 \usepackage{amssymb}
 \usepackage{caption}    % 图表标题定制
 \usepackage{fancyhdr}   % 页眉页脚
+\usepackage[
+    colorlinks=true,        % 彩色链接（true=彩色，false=带边框）
+    citecolor=blue,         % 引用文献链接颜色
+    linkcolor=black,        % 内部链接颜色（如目录、交叉引用）
+    urlcolor=blue,          % URL链接颜色
+    pdfborder={0 0 0},      % 链接边框（0 0 0 为无边框）
+    bookmarks=true,         % 生成PDF书签
+    pdfauthor={你的名字},    % PDF作者信息
+    pdftitle={文档标题}      % PDF标题信息
+]{hyperref}
 
 % --- 页面设置 ---
 \geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
@@ -109,19 +119,19 @@ Google 团队发表于 \emph{Nature} 的 AlphaChip，从根本上重构了宏单
 
 在奖励机制设计方面，由于布局质量无法在中间状态被直接评估，因此算法采用终态奖励策略。当所有模块放置完成后，系统基于半周长线长（HPWL）、布线拥塞度以及面积密度等指标构建加权标量奖励，并利用近端策略优化（PPO）算法更新策略网络参数。
 
-AlphaChip 的核心贡献在于，其通过对上万个工业网表进行预训练，首次验证了模型在面对未知网表时具备“零样本迁移（Zero-shot Transfer）”能力，说明强化学习能够学习具有泛化性的布局先验。然而，该方法在真实工业场景中仍存在显著局限性。一方面，连续物理空间被强制映射至离散网格后，会产生不可避免的\textbf{网格量化误差}，从而造成空间浪费；另一方面，基于标量试错反馈的强化学习机制在处理“绝对零重叠”等硬约束时缺乏有效梯度引导，因此收敛效率较低。此外，由于策略空间巨大，并且缺乏优良的训练数据集，模型在训练初期往往会陷入随机搜索的困境，导致训练时间过长且结果不稳定。
+AlphaChip\textsuperscript{\cite{mirhoseiniGraphPlacementMethodology2021}} 的核心贡献在于，其通过对上万个工业网表进行预训练，首次验证了模型在面对未知网表时具备“零样本迁移（Zero-shot Transfer）”能力，说明强化学习能够学习具有泛化性的布局先验。然而，该方法在真实工业场景中仍存在显著局限性。一方面，连续物理空间被强制映射至离散网格后，会产生不可避免的\textbf{网格量化误差}，从而造成空间浪费；另一方面，基于标量试错反馈的强化学习机制在处理“绝对零重叠”等硬约束时缺乏有效梯度引导，因此收敛效率较低。此外，由于策略空间巨大，并且缺乏优良的训练数据集，模型在训练初期往往会陷入随机搜索的困境，导致训练时间过长且结果不稳定。
 
 \subsection{边图神经网络：拓扑嵌入}
 
 在物理设计任务中，如何准确评估当前布局状态的优劣，是引导后续优化过程的关键。传统图卷积网络通常仅将标准单元或宏单元抽象为节点进行建模，但忽略了电路网表本质上属于一种\textbf{超图结构}：单条物理连线往往同时连接多个引脚，而非简单的点对点关系。
 
-针对这一问题，以 \emph{Circuit GNN} 为代表的工作提出了新的图表示方式。这类方法通过构建\textbf{二分图结构}，或引入边注意力机制（Edge-GAT），使“线网”本身也能够作为特征实体参与消息传递过程，从而显式建模节点与连线之间的高阶拓扑关系。
+针对这一问题，以 \emph{Circuit GNN}\textsuperscript{\cite{zhangCircuitGNNGraphNeural}} 为代表的工作提出了新的图表示方式。这类方法通过构建\textbf{二分图结构}，或引入边注意力机制（Edge-GAT），使“线网”本身也能够作为特征实体参与消息传递过程，从而显式建模节点与连线之间的高阶拓扑关系。
 
 大量实验结果表明，相比传统节点级 GNN，仅依赖节点聚合的方式难以充分表达真实布线关系，而显式进行边特征建模后，拥塞预测与线长估计的 $R^2$ 分数均得到显著提升。因此，该研究方向不仅提高了物理设计预测任务的精度，也为后续构建基于图结构引导的 Diffusion 布局生成模型提供了高保真的低维向量表征基础。
 
 \subsection{AI+EA： 传统算法的智能引导}
 
-传统启发式算法又面临搜索效率低、计算资源消耗大的问题，而AI正好可以引导算法进行更智慧的搜索。其中，由上海交通大学、天津大学与华为诺亚方舟实验室联合提出的 \textbf{CORE} 算法，是该领域的重要代表工作。
+传统启发式算法又面临搜索效率低、计算资源消耗大的问题，而AI正好可以引导算法进行更智慧的搜索。其中，由上海交通大学、天津大学与华为诺亚方舟实验室联合提出的 \textbf{CORE} \textsuperscript{\cite{liCORECollaborativeOptimization}}算法，是该领域的重要代表工作。
 
 传统 Floorplanning 方法通常依赖 \textbf{B*-tree} 或 \textbf{Sequence Pair（SP）} 等拓扑结构描述布局状态，并结合模拟退火（SA）进行随机扰动搜索。然而，大量随机生成的拓扑变换往往会引发严重的面积重叠与空间浪费，从而导致搜索效率较低。针对这一问题，CORE 创新性地引入 Actor-Critic 强化学习框架，使神经网络能够主动学习“高价值扰动”的生成规律，从而替代传统 SA 中基于随机数的盲目搜索机制。
 
@@ -212,12 +222,6 @@ $$\begin{aligned}
 
 % --- 参考文献 [cite: 26-35] ---
 \section*{\xiaowu\heiti 参考文献 (References)}
-\begin{enumerate}
-    \fontsize{7.5pt}{9pt}\selectfont % 6号宋体内容
-    \setlength{\itemsep}{0pt}
-    \item {[1]} 主要责任者．文献题名[M]．出版地：出版者，出版年：起止页码． [cite: 29]
-    \item {[2]} Spindler P, Schlichtmann U. Abacus: Fast legalization of standard cell circuits with minimal movement[C]//Proceedings of the 2008 international symposium on Physical design. 2008: 47-54. [cite: 14, 39]
-    \item {[3]} 主要责任者．文献题名[J]．刊名，年，卷（期）：起止页码． [cite: 35]
-\end{enumerate}
-
+\bibliographystyle{plain}  % 可选：plain, unsrt, alpha, abbrv 等
+\bibliography{ref}         % 不要加 .bib 后缀
 \end{document}

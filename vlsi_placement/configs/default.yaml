@@ -24,8 +24,10 @@ environment:
   max_modules: 200
   w_hpwl: 1.0
   w_congestion: 0.5
-  w_overlap: 0.05
+  w_overlap: 500.0                 # Heavy overlap penalty to prevent stacking
   congestion_bins: 16
+  max_density_per_cell: 1.0         # Action masking threshold
+  use_action_masking: true
 
 # ---- Policy Network ----
 policy:
@@ -47,7 +49,9 @@ diffusion:
   guidance_scale: 1.0          # η — energy gradient step size
   canvas_width: 1000.0
   canvas_height: 1000.0
-  inference_num_steps: 100   # DDIM-style steps for evaluate (full ~timesteps//2 if null)
+  max_energy_grad: 50.0       # Tanh saturation ceiling for energy gradient
+  use_dynamic_weights: true   # Cosine-anneal λ_hpwl↓, λ_overlap↑ over denoising steps
+  inference_num_steps: 100
 
 # ---- PPO Training ----
 ppo:

@@ -1,0 +1,19 @@
+\begin{thebibliography}{1}
+
+\bibitem{liCORECollaborativeOptimization}
+Pengyi Li, Shixiong Kai, Jianye Hao, Ruizhe Zhong, Hongyao Tang, Zhentao Tang, Mingxuan Yuan, and Junchi Yan.
+\newblock {{CORE}}: {{Collaborative Optimization}} with {{Reinforcement Learning}} and {{Evolutionary Algorithm}} for {{Floorplanning}}.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, San Diego, CA, USA, December 2025.
+\newblock Poster presentation.
+
+\bibitem{mirhoseiniGraphPlacementMethodology2021}
+Azalia Mirhoseini, Anna Goldie, Mustafa Yazgan, Joe~Wenjie Jiang, Ebrahim Songhori, Shen Wang, Young-Joon Lee, Eric Johnson, Omkar Pathak, Azade Nova, Jiwoo Pak, Andy Tong, Kavya Srinivasa, William Hang, Emre Tuncer, Quoc~V. Le, James Laudon, Richard Ho, Roger Carpenter, and Jeff Dean.
+\newblock A graph placement methodology for fast chip design.
+\newblock {\em Nature}, 594(7862):207--212, 2021.
+
+\bibitem{zhangCircuitGNNGraphNeural}
+Guo Zhang, Hao He, and Dina Katabi.
+\newblock Circuit-{{GNN}}: {{Graph Neural Networks}} for {{Distributed Circuit Design}}.
+\newblock In {\em Proceedings of the 36th International Conference on Machine Learning (ICML 2019)}, volume~97 of {\em Proceedings of Machine Learning Research}, pages 7364--7373, Long Beach, California, USA, June 2019. PMLR.
+
+\end{thebibliography}

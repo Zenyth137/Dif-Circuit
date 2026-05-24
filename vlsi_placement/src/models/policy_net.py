@@ -46,14 +46,15 @@ class PolicyHead(nn.Module):
                 nn.Linear(hidden_dim * 2, grid_size * grid_size),
             )
 
-    def forward(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, features: torch.Tensor,
+                action_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
         Args:
             features: (batch, hidden_dim) or (hidden_dim,) state features
+            action_mask: (batch, G, G) or (G, G) — 1.0=legal, 0.0=illegal
 
         Returns:
-            logits: (batch, grid_size, grid_size) action logits
-            log_probs: same shape, log-softmax
+            logits: (batch, grid_size, grid_size) action logits (masked)
         """
         if features.dim() == 1:
             features = features.unsqueeze(0)
@@ -61,17 +62,23 @@ class PolicyHead(nn.Module):
         if self.use_factorized:
             row_logits = self.row_head(features)    # (B, G)
             col_logits = self.col_head(features)    # (B, G)
-            # Outer product
             logits = row_logits.unsqueeze(-1) + col_logits.unsqueeze(-2)  # (B, G, G)
         else:
             logits = self.fc(features).view(-1, self.grid_size, self.grid_size)
 
+        # Apply action mask: illegal actions get -inf logits
+        if action_mask is not None:
+            if action_mask.dim() == 2:
+                action_mask = action_mask.unsqueeze(0)
+            logits = logits + torch.log(action_mask + 1e-12)
+
         return logits
 
     def sample(self, features: torch.Tensor,
-               deterministic: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
+               deterministic: bool = False,
+               action_mask: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
         """Sample an action and return (action_idx, log_prob)."""
-        logits = self.forward(features)  # (B, G, G)
+        logits = self.forward(features, action_mask)  # (B, G, G)
         flat_logits = logits.view(logits.size(0), -1)
 
         if deterministic:
@@ -86,12 +93,12 @@ class PolicyHead(nn.Module):
 
         return action_idx, action_log_prob
 
-    def evaluate(self, features: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def evaluate(self, features: torch.Tensor, actions: torch.Tensor,
+                 action_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Evaluate log-probability of given actions."""
-        logits = self.forward(features)
+        logits = self.forward(features, action_mask)
         flat_logits = logits.view(logits.size(0), -1)
         log_probs = F.log_softmax(flat_logits, dim=-1)
-        # Actions may be (B,), (B, 1), or stacked 0-d scalars — normalize to (B, 1)
         actions = actions.long().view(log_probs.size(0), 1)
         return log_probs.gather(1, actions).squeeze(-1)
 

@@ -187,23 +187,28 @@ class BStarTree:
 
     def perturb_swap(self):
         """Swap two random modules."""
-        if self.num_modules < 2:
+        keys = list(self.node_map.keys())
+        if len(keys) < 2:
             return
-        a, b = random.sample(list(self.node_map.keys()), 2)
+        a, b = random.sample(keys, 2)
         node_a, node_b = self.node_map[a], self.node_map[b]
         node_a.module_id, node_b.module_id = b, a
         self.node_map[a], self.node_map[b] = node_b, node_a
 
     def perturb_rotate(self):
         """Rotate a random module."""
-        mid = random.choice(list(self.node_map.keys()))
+        keys = list(self.node_map.keys())
+        if not keys:
+            return
+        mid = random.choice(keys)
         self.node_map[mid].rotated = not self.node_map[mid].rotated
 
     def perturb_move(self):
         """Move a node within the tree (detach and re-insert)."""
-        if self.num_modules < 2:
+        keys = list(self.node_map.keys())
+        if len(keys) < 2:
             return
-        mid = random.choice(list(self.node_map.keys()))
+        mid = random.choice(keys)
         node = self.node_map[mid]
 
         # Don't move root (simplification)
@@ -212,6 +217,8 @@ class BStarTree:
 
         # Detach
         parent = node.parent
+        if parent is None:
+            return
         if parent.left == node:
             parent.left = None
         else:
@@ -221,6 +228,11 @@ class BStarTree:
         targets = [n for n in self.node_map.values()
                    if n != node and n != parent]
         if not targets:
+            # Re-attach to original parent
+            if parent.left is None:
+                parent.left = node
+            else:
+                parent.right = node
             return
         target = random.choice(targets)
         side = 'left' if random.random() < 0.5 else 'right'

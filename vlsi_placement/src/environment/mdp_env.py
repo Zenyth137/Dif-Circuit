@@ -26,9 +26,12 @@ class EnvConfig:
     # Reward weights
     w_hpwl: float = 1.0
     w_congestion: float = 0.5
-    w_overlap: float = 0.0
+    w_overlap: float = 500.0      # CRITICAL: heavy penalty for overlap
     # Congestion grid
     congestion_bins: int = 16
+    # Action masking
+    max_density_per_cell: float = 1.0  # Max allowed module count per grid cell
+    use_action_masking: bool = True     # Enable action masking
 
     def __post_init__(self):
         self.cell_w = self.canvas_width / self.grid_size
@@ -140,7 +143,7 @@ class MacroPlacementEnv:
         return state, reward, done, info
 
     def _get_state(self) -> Dict[str, np.ndarray]:
-        """Build the current state dictionary."""
+        """Build the current state dictionary with action masking."""
         state = {
             "density_grid": self.density_grid.copy(),
         }
@@ -152,10 +155,34 @@ class MacroPlacementEnv:
         if self.topology_embedding is not None:
             state["topology_embedding"] = self.topology_embedding
 
-        # Mask of available grid positions (simplified: all positions available)
-        state["action_mask"] = np.ones(
-            (self.cfg.grid_size, self.cfg.grid_size), dtype=np.float32
-        )
+        # ---- Action Masking: block grid cells that are over capacity ----
+        if self.cfg.use_action_masking and self.nodes is not None:
+            # Compute per-cell capacity needed for current module
+            if self.current_step < self.num_modules:
+                next_mod = self.nodes[self.current_step]
+                mod_w, mod_h = next_mod[1], next_mod[2]
+                gw = max(1, int(np.ceil(mod_w / self.cfg.cell_w)))
+                gh = max(1, int(np.ceil(mod_h / self.cfg.cell_h)))
+
+                # For each grid cell, check if placing here would exceed capacity
+                mask = np.ones((self.cfg.grid_size, self.cfg.grid_size), dtype=np.float32)
+
+                # Module occupies gw×gh cells. Check all cells in that footprint.
+                for gx in range(self.cfg.grid_size - gw + 1):
+                    for gy in range(self.cfg.grid_size - gh + 1):
+                        footprint = self.density_grid[gx:gx+gw, gy:gy+gh]
+                        if np.any(footprint >= self.cfg.max_density_per_cell):
+                            mask[gx, gy] = 0.0  # Block this position
+
+                state["action_mask"] = mask
+            else:
+                state["action_mask"] = np.ones(
+                    (self.cfg.grid_size, self.cfg.grid_size), dtype=np.float32
+                )
+        else:
+            state["action_mask"] = np.ones(
+                (self.cfg.grid_size, self.cfg.grid_size), dtype=np.float32
+            )
 
         return state
 
