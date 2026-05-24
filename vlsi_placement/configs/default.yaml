@@ -1,0 +1,73 @@
+# Default configuration for VLSI Placement Pipeline
+
+# ---- Netlist Generation ----
+netlist:
+  num_modules: 5000
+  num_nets: 5000
+  canvas_width: 1000.0
+  canvas_height: 1000.0
+  min_width: 2.0
+  max_width: 50.0
+  min_height: 2.0
+  max_height: 50.0
+  size_mean: 3.0
+  size_std: 0.8
+  min_pins_per_net: 2
+  max_pins_per_net: 10
+  seed: 42
+
+# ---- Environment ----
+environment:
+  grid_size: 64
+  canvas_width: 1000.0
+  canvas_height: 1000.0
+  max_modules: 200
+  w_hpwl: 1.0
+  w_congestion: 0.5
+  congestion_bins: 16
+
+# ---- Policy Network ----
+policy:
+  grid_size: 64
+  hidden_dim: 128
+  gnn_layers: 3
+  gnn_heads: 4
+  use_factorized_policy: true
+
+# ---- Diffusion Model ----
+diffusion:
+  hidden_dim: 128
+  num_layers: 4
+  timesteps: 1000
+  beta_schedule: "cosine"
+  lambda_overlap: 10.0
+  lambda_hpwl: 0.1
+  hpwl_temperature: 1.0       # LSE smooth max/min temperature (τ)
+  guidance_scale: 1.0          # η — energy gradient step size
+  canvas_width: 1000.0
+  canvas_height: 1000.0
+
+# ---- PPO Training ----
+ppo:
+  lr: 0.0003
+  gamma: 0.99
+  lam: 0.95
+  clip_eps: 0.2
+  value_coef: 0.5
+  entropy_coef: 0.01
+  epochs: 10
+  batch_size: 64
+  max_grad_norm: 1.0
+
+# ---- Diffusion Training ----
+diffusion_training:
+  lr: 0.0001
+  ema_decay: 0.9999
+  max_grad_norm: 1.0
+
+# ---- General ----
+num_iterations: 1000
+episodes_per_iter: 16
+num_epochs: 100
+num_train_samples: 100
+early_stop_patience: 50

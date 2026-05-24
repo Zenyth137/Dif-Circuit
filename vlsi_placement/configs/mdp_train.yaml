@@ -1,0 +1,32 @@
+# MDP Training Configuration
+# Overrides from default.yaml
+
+netlist:
+  num_modules: 5000
+  num_nets: 5000
+
+environment:
+  grid_size: 64
+  max_modules: 200
+  w_hpwl: 1.0
+  w_congestion: 0.5
+
+policy:
+  grid_size: 64
+  hidden_dim: 128
+  gnn_layers: 3
+  gnn_heads: 4
+
+ppo:
+  lr: 0.0003
+  gamma: 0.99
+  lam: 0.95
+  clip_eps: 0.2
+  value_coef: 0.5
+  entropy_coef: 0.01
+  epochs: 10
+  batch_size: 64
+
+num_iterations: 1000
+episodes_per_iter: 16
+early_stop_patience: 50

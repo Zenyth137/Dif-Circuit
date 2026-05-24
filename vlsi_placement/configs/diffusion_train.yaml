@@ -1,0 +1,26 @@
+# Diffusion Model Training Configuration
+# Overrides from default.yaml
+
+netlist:
+  num_modules: 5000
+  num_nets: 5000
+
+diffusion:
+  hidden_dim: 128
+  num_layers: 4
+  timesteps: 1000
+  beta_schedule: "cosine"
+  lambda_overlap: 10.0
+  lambda_hpwl: 0.1
+  hpwl_temperature: 1.0
+  guidance_scale: 1.0
+  canvas_width: 1000.0
+  canvas_height: 1000.0
+
+training:
+  lr: 0.0001
+  ema_decay: 0.9999
+  max_grad_norm: 1.0
+
+num_epochs: 100
+num_train_samples: 100
