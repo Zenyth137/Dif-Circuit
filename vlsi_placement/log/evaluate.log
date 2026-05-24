@@ -1,0 +1,148 @@
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 10 test netlists
+GPU cap: max_modules=200, diffusion steps=50
+Loaded MDP policy from checkpoints/mdp_policy.pt
+Diffusion architecture (checkpoint metadata): hidden_dim=64, num_layers=2, timesteps=250
+Loaded diffusion EMA weights from checkpoint
+Loaded diffusion model from checkpoints/diffusion.pt
+
+============================================================
+Netlist 1/10: 200 modules, 800 nets
+============================================================
+  Running SA... FAILED: Sample larger than population or is negative
+  Running Analytical... done. HPWL=529758, Overlap=28.97%, Time=0.0s
+  Running MDP... /mnt/fuso/DC/vlsi_placement/scripts/../src/models/gnn.py:108: UserWarning: index_reduce() is in beta and the API may change at any time. (Triggered internally at /pytorch/aten/src/ATen/native/cuda/Indexing.cu:1541.)
+  alpha_max.index_reduce_(0, dst, alpha, 'amax', include_self=False)
+done. HPWL=664188, Overlap=100.00%, Time=0.2s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1196407, Overlap=21.30%, Time=217.9s
+
+============================================================
+Netlist 2/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=4909, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=541931, Overlap=39.67%, Time=0.0s
+  Running MDP... done. HPWL=679719, Overlap=100.00%, Time=0.0s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1222103, Overlap=12.93%, Time=217.2s
+
+============================================================
+Netlist 3/10: 200 modules, 800 nets
+============================================================
+  Running SA... FAILED: Sample larger than population or is negative
+  Running Analytical... done. HPWL=479410, Overlap=30.85%, Time=0.0s
+  Running MDP... done. HPWL=729125, Overlap=100.00%, Time=0.1s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1214125, Overlap=16.46%, Time=214.4s
+
+============================================================
+Netlist 4/10: 200 modules, 800 nets
+============================================================
+  Running SA... FAILED: Sample larger than population or is negative
+  Running Analytical... done. HPWL=553238, Overlap=29.13%, Time=0.0s
+  Running MDP... done. HPWL=754484, Overlap=100.00%, Time=0.1s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1223604, Overlap=9.58%, Time=218.4s
+
+============================================================
+Netlist 5/10: 200 modules, 800 nets
+============================================================
+  Running SA... FAILED: Sample larger than population or is negative
+  Running Analytical... done. HPWL=533795, Overlap=53.82%, Time=0.0s
+  Running MDP... done. HPWL=672172, Overlap=100.00%, Time=0.1s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1220475, Overlap=10.15%, Time=206.6s
+
+============================================================
+Netlist 6/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=5500, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=496925, Overlap=44.27%, Time=0.0s
+  Running MDP... done. HPWL=608062, Overlap=100.00%, Time=0.0s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1196801, Overlap=12.43%, Time=217.0s
+
+============================================================
+Netlist 7/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=11369, Overlap=100.00%, Time=2.0s
+  Running Analytical... done. HPWL=510763, Overlap=70.67%, Time=0.0s
+  Running MDP... done. HPWL=712094, Overlap=100.00%, Time=0.1s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1203246, Overlap=19.20%, Time=220.9s
+
+============================================================
+Netlist 8/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=15755, Overlap=100.00%, Time=1.9s
+  Running Analytical... done. HPWL=446285, Overlap=42.94%, Time=0.0s
+  Running MDP... done. HPWL=680312, Overlap=100.00%, Time=0.0s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1196358, Overlap=9.06%, Time=208.7s
+
+============================================================
+Netlist 9/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=6579, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=469759, Overlap=33.88%, Time=0.0s
+  Running MDP... done. HPWL=687688, Overlap=100.00%, Time=0.0s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1205347, Overlap=15.01%, Time=213.4s
+
+============================================================
+Netlist 10/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=5663, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=494956, Overlap=16.67%, Time=0.0s
+  Running MDP... done. HPWL=717391, Overlap=100.00%, Time=0.0s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=249 (1-ᾶ_K=0.9540)
+done. HPWL=1192219, Overlap=14.73%, Time=220.5s
+
+Results saved to results/comparison/
+
+================================================================================
+PLACEMENT METHOD COMPARISON
+================================================================================
+Overlap % = union overlap / total module area (0–100%, physical)
+       Method HPWL (mean) HPWL (std) Overlap % (mean) Overlap % (std) Congestion (mean) Runtime (mean) Runtime (std)
+           SA        8296       3963           100.00            0.00           12.4756           1.7s          0.2s
+   Analytical      505682      32668            39.09           14.34            1.8471           0.0s          0.0s
+          MDP      690523      38506           100.00            0.00            6.2754           0.1s          0.1s
+MDP+Diffusion     1207069      11406            14.09            3.88            1.9543         215.5s          4.5s
+================================================================================
+
+================================================================================
+MDP+Diffusion vs MDP (per netlist)
+================================================================================
+ Netlist     ΔHPWL%    MDP Ov%   Diff Ov%     ΔOv pp
+--------------------------------------------------------------------------------
+       1      -80.1     100.00      21.30     +78.70
+       2      -79.8     100.00      12.93     +87.07
+       3      -66.5     100.00      16.46     +83.54
+       4      -62.2     100.00       9.58     +90.42
+       5      -81.6     100.00      10.15     +89.85
+       6      -96.8     100.00      12.43     +87.57
+       7      -69.0     100.00      19.20     +80.80
+       8      -75.9     100.00       9.06     +90.94
+       9      -75.3     100.00      15.01     +84.99
+      10      -66.2     100.00      14.73     +85.27
+--------------------------------------------------------------------------------
+    MEAN      -75.3                           +85.91
+
+  ΔHPWL% > 0  → diffusion lowered wirelength vs MDP
+  ΔOv pp > 0  → diffusion reduced overlap % vs MDP
+================================================================================
+
+Relative to first method (HPWL only):
+  Analytical vs SA: HPWL improvement = -5995.8%
+  MDP vs SA: HPWL improvement = -8223.9%
+  MDP+Diffusion vs SA: HPWL improvement = -14450.6%

@@ -13,6 +13,7 @@ Architecture:
 Reference: VLSI.tex Section 3.1
 """
 
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -122,9 +123,9 @@ class PPOTrainer:
         Returns:
             episode_reward: total terminal reward
         """
-        # Generate a netlist
+        # Generate a netlist sized for the MDP (avoid full 5k-node GNN graphs)
         nodes, nets = generator.generate()
-        adj = generator.build_adjacency()
+        nodes, nets = generator.truncate_to_max_modules(self.env_config.max_modules)
         edge_index, edge_attr = generator.build_edge_index()
 
         # Convert to tensors
@@ -136,6 +137,13 @@ class PPOTrainer:
         # Reset environment
         self.env.reset(nodes, nets)
 
+        # One GNN forward per episode; detach so PPO can replay the buffer for
+        # multiple epochs without "backward through the graph a second time".
+        with torch.no_grad():
+            _, global_emb = self.policy.encode_graph(
+                module_features, net_features, edge_index_t, edge_attr_t
+            )
+
         episode_reward = 0.0
         total_hpwl = 0.0
 
@@ -143,15 +151,15 @@ class PPOTrainer:
             current_module = nodes[step]
             w, h = float(current_module[1]), float(current_module[2])
 
-            # Get action
             result = self.policy.get_action(
                 module_features, net_features, edge_index_t, edge_attr_t,
-                w, h, deterministic=deterministic
+                w, h, deterministic=deterministic, global_emb=global_emb,
             )
 
             action_idx = result["action_idx"]
             log_prob = result["log_prob"]
             value = result["value"]
+            state_feat = result["state_feat"]
 
             # Convert action_idx to grid position
             action_idx_int = int(action_idx.item())
@@ -162,15 +170,14 @@ class PPOTrainer:
             state, reward, done, info = self.env.step((gx, gy))
             episode_reward += reward
 
-            # Store in buffer
-            state_feat = self.policy.forward_state(
-                module_features, net_features, edge_index_t, edge_attr_t,
-                *([float(nodes[min(step+1, len(nodes)-1)][1]), 
-                   float(nodes[min(step+1, len(nodes)-1)][2])]
-                  if step + 1 < len(nodes) else [0.0, 0.0])
+            self.buffer.store(
+                state_feat.detach(),
+                action_idx.view(()),
+                log_prob.detach().view(()),
+                reward,
+                value.detach().view(()),
+                done,
             )
-
-            self.buffer.store(state_feat, action_idx, log_prob, reward, value, done)
 
         # Compute final HPWL for logging
         final_positions = self.env.get_placement()
@@ -332,6 +339,9 @@ class PPOTrainer:
                 best_reward = avg_reward
                 patience_counter = 0
                 if save_path:
+                    save_dir = os.path.dirname(save_path)
+                    if save_dir:
+                        os.makedirs(save_dir, exist_ok=True)
                     torch.save({
                         "policy_state_dict": self.policy.state_dict(),
                         "optimizer_state_dict": self.optimizer.state_dict(),

@@ -1,15 +1,17 @@
 # MDP Training Configuration
 # Overrides from default.yaml
 
+# Match environment.max_modules — GNN runs on this many modules, not 5000.
 netlist:
-  num_modules: 5000
-  num_nets: 5000
+  num_modules: 200
+  num_nets: 800
 
 environment:
   grid_size: 64
   max_modules: 200
   w_hpwl: 1.0
   w_congestion: 0.5
+  w_overlap: 0.05
 
 policy:
   grid_size: 64

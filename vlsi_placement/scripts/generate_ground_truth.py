@@ -12,7 +12,8 @@ This avoids the "pseudo-ground-truth" trap: every saved X_0 has
 ABSOLUTELY ZERO overlap (guaranteed by the skyline legalizer).
 
 Usage:
-    python scripts/generate_ground_truth.py --num-modules 5000 --num-nets 5000 \\
+    # Match MDP/diffusion configs (200 modules for ~8 GB GPU)
+    python scripts/generate_ground_truth.py --num-modules 200 --num-nets 800 \\
         --num-samples 100 --output data/ground_truth
 """
 
@@ -34,8 +35,9 @@ def main():
         description="Generate ground-truth (netlist, X_0) pairs for diffusion training"
     )
     # Netlist params
-    parser.add_argument("--num-modules", type=int, default=5000)
-    parser.add_argument("--num-nets", type=int, default=5000)
+    parser.add_argument("--num-modules", type=int, default=200,
+                        help="Modules per netlist (use same as mdp_train / diffusion_train)")
+    parser.add_argument("--num-nets", type=int, default=800)
     parser.add_argument("--num-samples", type=int, default=100)
     parser.add_argument("--canvas-width", type=float, default=1000.0)
     parser.add_argument("--canvas-height", type=float, default=1000.0)

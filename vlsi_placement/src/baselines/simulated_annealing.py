@@ -131,7 +131,7 @@ class BStarTree:
             return positions
 
         # In-order traversal with contour tracking
-        contour = [(0.0, 0.0, canvas_width, 0.0)]  # (x_start, x_end, y)
+        contour = [(0.0, canvas_width, 0.0)]  # (x_start, x_end, y)
 
         def place_node(node: 'BStarTree.Node', x_offset: float):
             if node is None:
@@ -379,10 +379,10 @@ class SimulatedAnnealing:
     def _cost(self, positions: np.ndarray,
               nodes: np.ndarray, nets: list) -> float:
         """Compute total cost = HPWL + overlap penalty."""
-        from ..environment.reward import compute_hpwl, compute_overlap
+        from ..environment.reward import compute_hpwl, compute_overlap_union
         centers = self._corners_to_centers(positions, nodes)
         hpwl = compute_hpwl(centers, nets)
-        overlap = compute_overlap(centers, nodes)
+        overlap = compute_overlap_union(centers, nodes)
         return self.cfg.w_hpwl * hpwl + self.cfg.w_overlap * overlap
 
     def _corners_to_centers(self, corners: np.ndarray,

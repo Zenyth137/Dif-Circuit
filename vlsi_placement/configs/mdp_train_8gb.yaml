@@ -1,0 +1,32 @@
+# MDP training tuned for ~8 GB GPUs (e.g. laptop RTX 3060/4060)
+# Overrides mdp_train.yaml defaults
+
+netlist:
+  num_modules: 200
+  num_nets: 400
+
+environment:
+  grid_size: 64
+  max_modules: 200
+  w_hpwl: 1.0
+  w_congestion: 0.5
+
+policy:
+  grid_size: 64
+  hidden_dim: 64
+  gnn_layers: 2
+  gnn_heads: 2
+
+ppo:
+  lr: 0.0003
+  gamma: 0.99
+  lam: 0.95
+  clip_eps: 0.2
+  value_coef: 0.5
+  entropy_coef: 0.01
+  epochs: 4
+  batch_size: 32
+
+num_iterations: 1000
+episodes_per_iter: 8
+early_stop_patience: 50

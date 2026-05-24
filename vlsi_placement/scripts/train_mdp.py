@@ -54,6 +54,10 @@ def main():
 
     print(f"Policy params: {sum(p.numel() for p in policy.parameters()):,}")
 
+    save_dir = os.path.dirname(args.save_path)
+    if save_dir:
+        os.makedirs(save_dir, exist_ok=True)
+
     # Train
     log = trainer.train(
         generator=generator,

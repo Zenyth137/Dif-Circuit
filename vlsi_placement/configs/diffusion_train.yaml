@@ -1,9 +1,12 @@
 # Diffusion Model Training Configuration
 # Overrides from default.yaml
 
+# Use same scale as MDP (200 macros); generate GT with matching --num-modules
 netlist:
-  num_modules: 5000
-  num_nets: 5000
+  num_modules: 200
+  num_nets: 800
+
+max_modules: 200
 
 diffusion:
   hidden_dim: 128
@@ -16,6 +19,7 @@ diffusion:
   guidance_scale: 1.0
   canvas_width: 1000.0
   canvas_height: 1000.0
+  inference_num_steps: 100
 
 training:
   lr: 0.0001

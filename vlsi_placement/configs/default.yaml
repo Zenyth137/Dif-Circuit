@@ -2,8 +2,8 @@
 
 # ---- Netlist Generation ----
 netlist:
-  num_modules: 5000
-  num_nets: 5000
+  num_modules: 200
+  num_nets: 800
   canvas_width: 1000.0
   canvas_height: 1000.0
   min_width: 2.0
@@ -24,6 +24,7 @@ environment:
   max_modules: 200
   w_hpwl: 1.0
   w_congestion: 0.5
+  w_overlap: 0.05
   congestion_bins: 16
 
 # ---- Policy Network ----
@@ -46,6 +47,7 @@ diffusion:
   guidance_scale: 1.0          # η — energy gradient step size
   canvas_width: 1000.0
   canvas_height: 1000.0
+  inference_num_steps: 100   # DDIM-style steps for evaluate (full ~timesteps//2 if null)
 
 # ---- PPO Training ----
 ppo:

@@ -159,18 +159,88 @@ class ComparisonRunner:
         df = pd.DataFrame(rows)
         return df
 
+    def print_mdp_vs_diffusion(self, results: Dict[str, List[MethodResult]]):
+        """Per-netlist and mean deltas: MDP+Diffusion relative to MDP."""
+        base_name, target_name = "MDP", "MDP+Diffusion"
+        if base_name not in results or target_name not in results:
+            return
+
+        base_list = results[base_name]
+        target_list = results[target_name]
+        n = min(len(base_list), len(target_list))
+
+        hpwl_deltas = []
+        overlap_deltas = []
+        rows = []
+
+        print("\n" + "=" * 80)
+        print("MDP+Diffusion vs MDP (per netlist)")
+        print("=" * 80)
+        print(f"{'Netlist':>8} {'ΔHPWL%':>10} {'MDP Ov%':>10} {'Diff Ov%':>10} {'ΔOv pp':>10}")
+        print("-" * 80)
+
+        for i in range(n):
+            b, t = base_list[i], target_list[i]
+            if b.metrics.num_modules == 0 or t.metrics.num_modules == 0:
+                continue
+            if b.metrics.hpwl <= 0:
+                continue
+
+            d_hpwl = (b.metrics.hpwl - t.metrics.hpwl) / b.metrics.hpwl * 100.0
+            d_ov = b.metrics.overlap_pct - t.metrics.overlap_pct
+            hpwl_deltas.append(d_hpwl)
+            overlap_deltas.append(d_ov)
+            rows.append((i + 1, d_hpwl, b.metrics.overlap_pct, t.metrics.overlap_pct, d_ov))
+            print(
+                f"{i + 1:8d} {d_hpwl:+10.1f} {b.metrics.overlap_pct:10.2f} "
+                f"{t.metrics.overlap_pct:10.2f} {d_ov:+10.2f}"
+            )
+
+        if hpwl_deltas:
+            print("-" * 80)
+            print(
+                f"{'MEAN':>8} {np.mean(hpwl_deltas):+10.1f} "
+                f"{'':>10} {'':>10} {np.mean(overlap_deltas):+10.2f}"
+            )
+            print(
+                f"\n  ΔHPWL% > 0  → diffusion lowered wirelength vs MDP\n"
+                f"  ΔOv pp > 0  → diffusion reduced overlap % vs MDP"
+            )
+        print("=" * 80)
+
+        self._save_mdp_vs_diffusion(rows, hpwl_deltas, overlap_deltas)
+
+    def _save_mdp_vs_diffusion(self, rows, hpwl_deltas, overlap_deltas):
+        if not self.output_dir or not rows:
+            return
+        df = pd.DataFrame(
+            rows,
+            columns=["netlist_idx", "hpwl_improve_pct", "mdp_overlap_pct",
+                     "diffusion_overlap_pct", "overlap_reduction_pp"],
+        )
+        df.to_csv(self.output_dir / "mdp_vs_diffusion.csv", index=False)
+        if hpwl_deltas:
+            summary = pd.DataFrame([{
+                "hpwl_improve_pct_mean": np.mean(hpwl_deltas),
+                "overlap_reduction_pp_mean": np.mean(overlap_deltas),
+            }])
+            summary.to_csv(self.output_dir / "mdp_vs_diffusion_summary.csv", index=False)
+
     def print_summary(self, results: Dict[str, List[MethodResult]]):
         """Print formatted comparison table."""
         df = self.summarize(results)
         print("\n" + "=" * 80)
         print("PLACEMENT METHOD COMPARISON")
         print("=" * 80)
+        print("Overlap % = union overlap / total module area (0–100%, physical)")
         print(df.to_string(index=False))
         print("=" * 80)
 
-        # Compute relative improvements
+        self.print_mdp_vs_diffusion(results)
+
+        # Compute relative improvements vs first method in table
         if len(df) >= 2:
-            print("\nRelative to first method:")
+            print("\nRelative to first method (HPWL only):")
             baseline_name = df.iloc[0]["Method"]
             baseline_results = results[baseline_name]
             baseline_hpwls = [r.metrics.hpwl for r in baseline_results

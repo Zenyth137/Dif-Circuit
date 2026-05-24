@@ -57,6 +57,23 @@ class TestNetlistGenerator(unittest.TestCase):
         self.assertGreater(edge_index.shape[1], 0)
         self.assertEqual(edge_attr.shape[0], edge_index.shape[1])
 
+    def test_module_edge_index(self):
+        self.generator.generate()
+        edge_index, edge_attr = self.generator.build_module_edge_index()
+        self.assertEqual(edge_index.shape[0], 2)
+        self.assertGreater(edge_index.shape[1], 0)
+        n = self.config.num_modules
+        self.assertTrue(np.all(edge_index < n))
+        self.assertEqual(edge_attr.shape[0], edge_index.shape[1])
+
+    def test_truncate_to_max_modules(self):
+        self.generator.generate()
+        nodes, nets = self.generator.truncate_to_max_modules(50)
+        self.assertEqual(len(nodes), 50)
+        for net in nets:
+            self.assertGreaterEqual(len(net), 2)
+            self.assertTrue(all(m < 50 for m in net))
+
     def test_total_area(self):
         self.generator.generate()
         area = self.generator.get_total_area()

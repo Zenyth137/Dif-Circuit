@@ -1,0 +1,30 @@
+# Diffusion training for ~8 GB GPUs (align with mdp_train / mdp_train_8gb)
+
+netlist:
+  num_modules: 200
+  num_nets: 400
+
+# Truncate loaded GT files to this many modules (must match GT generation size)
+max_modules: 200
+
+diffusion:
+  hidden_dim: 64
+  num_layers: 2
+  timesteps: 250
+  beta_schedule: "cosine"
+  lambda_overlap: 10.0
+  lambda_hpwl: 0.1
+  hpwl_temperature: 1.0
+  guidance_scale: 1.0
+  canvas_width: 1000.0
+  canvas_height: 1000.0
+  # Reverse steps at inference (default full schedule = timesteps//2)
+  inference_num_steps: 50
+
+training:
+  lr: 0.0001
+  ema_decay: 0.9999
+  max_grad_norm: 1.0
+
+num_epochs: 100
+num_train_samples: 100

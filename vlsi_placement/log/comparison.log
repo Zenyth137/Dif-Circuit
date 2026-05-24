@@ -1,0 +1,31 @@
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 200 nodes, 800 nets from data/test_netlists/
+Loaded 10 test netlists
+GPU cap: max_modules=200, diffusion steps=50
+Loaded MDP policy from checkpoints/mdp_policy_long.pt
+Diffusion architecture (inferred from state_dict): hidden_dim=64, num_layers=2, timesteps=250
+Loaded diffusion model from checkpoints/diffusion.pt
+
+============================================================
+Netlist 1/10: 200 modules, 800 nets
+============================================================
+  Running SA... FAILED: Sample larger than population or is negative
+  Running Analytical... done. HPWL=529758, Overlap=28.97%, Time=0.0s
+  Running MDP... done. HPWL=271484, Overlap=100.00%, Time=0.2s
+  Running MDP+Diffusion... done. HPWL=1200360, Overlap=20.88%, Time=230.9s
+
+============================================================
+Netlist 2/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=4909, Overlap=100.00%, Time=2.2s
+  Running Analytical... done. HPWL=541931, Overlap=39.67%, Time=0.0s
+  Running MDP... done. HPWL=297656, Overlap=100.00%, Time=0.1s
+  Running MDP+Diffusion... 

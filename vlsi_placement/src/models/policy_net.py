@@ -81,6 +81,7 @@ class PolicyHead(nn.Module):
             action_idx = torch.multinomial(probs, 1).squeeze(-1)
 
         log_probs = F.log_softmax(flat_logits, dim=-1)
+        action_idx = action_idx.view(-1)
         action_log_prob = log_probs.gather(1, action_idx.unsqueeze(-1)).squeeze(-1)
 
         return action_idx, action_log_prob
@@ -90,7 +91,9 @@ class PolicyHead(nn.Module):
         logits = self.forward(features)
         flat_logits = logits.view(logits.size(0), -1)
         log_probs = F.log_softmax(flat_logits, dim=-1)
-        return log_probs.gather(1, actions.unsqueeze(-1)).squeeze(-1)
+        # Actions may be (B,), (B, 1), or stacked 0-d scalars — normalize to (B, 1)
+        actions = actions.long().view(log_probs.size(0), 1)
+        return log_probs.gather(1, actions).squeeze(-1)
 
 
 class ValueHead(nn.Module):
@@ -161,6 +164,19 @@ class PolicyNet(nn.Module):
         """Encode netlist graph once per episode."""
         return self.encoder(module_features, net_features, edge_index, edge_attr)
 
+    def build_state_features(self,
+                             global_emb: torch.Tensor,
+                             current_module_w: float,
+                             current_module_h: float) -> torch.Tensor:
+        """Project cached graph embedding + current module size into state features."""
+        curr_feat = torch.tensor(
+            [current_module_w, current_module_h],
+            device=global_emb.device,
+            dtype=global_emb.dtype,
+        )
+        state_feat = torch.cat([curr_feat, global_emb], dim=-1)
+        return self.state_proj(state_feat)
+
     def get_action(self,
                    module_features: torch.Tensor,
                    net_features: torch.Tensor,
@@ -168,7 +184,8 @@ class PolicyNet(nn.Module):
                    edge_attr: torch.Tensor,
                    current_module_w: float,
                    current_module_h: float,
-                   deterministic: bool = False) -> Dict[str, torch.Tensor]:
+                   deterministic: bool = False,
+                   global_emb: Optional[torch.Tensor] = None) -> Dict[str, torch.Tensor]:
         """
         Get action for the current step.
 
@@ -178,27 +195,20 @@ class PolicyNet(nn.Module):
             edge_index: (2, E) graph edges
             edge_attr: (E, 1) edge weights
             current_module_w, current_module_h: size of module to place
+            global_emb: optional pre-computed graph embedding (avoids re-running GNN)
 
         Returns:
-            dict with 'action_idx', 'log_prob', 'value'
+            dict with 'action_idx', 'log_prob', 'value', 'state_feat'
         """
-        _, global_emb = self.encode_graph(
-            module_features, net_features, edge_index, edge_attr
-        )
-        # global_emb: (hidden_dim,)
+        if global_emb is None:
+            _, global_emb = self.encode_graph(
+                module_features, net_features, edge_index, edge_attr
+            )
 
-        # Current module features
-        curr_feat = torch.tensor(
-            [current_module_w, current_module_h],
-            device=global_emb.device,
-            dtype=global_emb.dtype
+        state_feat = self.build_state_features(
+            global_emb, current_module_w, current_module_h
         )
 
-        # Combine state features
-        state_feat = torch.cat([curr_feat, global_emb], dim=-1)
-        state_feat = self.state_proj(state_feat)
-
-        # Get action and value
         action_idx, log_prob = self.policy_head.sample(
             state_feat, deterministic=deterministic
         )
@@ -208,6 +218,7 @@ class PolicyNet(nn.Module):
             "action_idx": action_idx,
             "log_prob": log_prob,
             "value": value,
+            "state_feat": state_feat,
         }
 
     def evaluate_actions(self,
@@ -225,15 +236,11 @@ class PolicyNet(nn.Module):
                       edge_index: torch.Tensor,
                       edge_attr: torch.Tensor,
                       current_w: float,
-                      current_h: float) -> torch.Tensor:
+                      current_h: float,
+                      global_emb: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Forward pass to get processed state features for storage."""
-        _, global_emb = self.encode_graph(
-            module_features, net_features, edge_index, edge_attr
-        )
-        curr_feat = torch.tensor(
-            [current_w, current_h],
-            device=global_emb.device,
-            dtype=global_emb.dtype
-        )
-        state_feat = torch.cat([curr_feat, global_emb], dim=-1)
-        return self.state_proj(state_feat)
+        if global_emb is None:
+            _, global_emb = self.encode_graph(
+                module_features, net_features, edge_index, edge_attr
+            )
+        return self.build_state_features(global_emb, current_w, current_h)

@@ -1,0 +1,227 @@
+fuso/DC/vlsi_placement$ python scripts/generate_ground_truth.py \
+  --num-modules 200 --num-nets 800 \
+  --num-samples 100 --output data/ground_truth
+Generating 100 ground-truth pairs...
+  Modules: 200, Nets: 800
+  Legalizer: sort_by=connectivity, refine_swaps=200
+
+  WARNING: Sample 0 has overlap=0.003452! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 1 has overlap=0.004569! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 2 has overlap=0.003546! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 3 has overlap=0.003024! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 4 has overlap=0.003752! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 5 has overlap=0.003703! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 6 has overlap=0.003869! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 7 has overlap=0.003704! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 8 has overlap=0.003530! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 9 has overlap=0.003343! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [  10/100] HPWL=430851, Overlap=0.003343, MaxY=24, Time=5.8s
+  WARNING: Sample 10 has overlap=0.004942! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 11 has overlap=0.003925! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 12 has overlap=0.003327! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 13 has overlap=0.003747! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 14 has overlap=0.003677! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 15 has overlap=0.003095! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 16 has overlap=0.003796! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 17 has overlap=0.004228! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 18 has overlap=0.003135! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 19 has overlap=0.003668! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [  20/100] HPWL=421258, Overlap=0.003668, MaxY=23, Time=6.8s
+  WARNING: Sample 20 has overlap=0.003543! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 21 has overlap=0.003861! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 22 has overlap=0.003274! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 23 has overlap=0.003922! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 24 has overlap=0.003977! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 25 has overlap=0.003081! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 26 has overlap=0.004354! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 27 has overlap=0.002743! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 28 has overlap=0.002818! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 29 has overlap=0.003380! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [  30/100] HPWL=404469, Overlap=0.003380, MaxY=30, Time=6.8s
+  WARNING: Sample 30 has overlap=0.003161! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 31 has overlap=0.004487! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 32 has overlap=0.003191! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 33 has overlap=0.003776! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 34 has overlap=0.004148! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 35 has overlap=0.003765! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 36 has overlap=0.003783! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 37 has overlap=0.003521! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 38 has overlap=0.002900! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 39 has overlap=0.004711! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [  40/100] HPWL=430800, Overlap=0.004711, MaxY=34, Time=5.9s
+  WARNING: Sample 40 has overlap=0.004381! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 41 has overlap=0.003357! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 42 has overlap=0.003350! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 43 has overlap=0.003813! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 44 has overlap=0.003739! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 45 has overlap=0.003250! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 46 has overlap=0.003817! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 47 has overlap=0.003229! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 48 has overlap=0.003311! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 49 has overlap=0.003793! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [  50/100] HPWL=403869, Overlap=0.003793, MaxY=33, Time=5.9s
+  WARNING: Sample 50 has overlap=0.004035! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 51 has overlap=0.003898! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 52 has overlap=0.003737! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 53 has overlap=0.003944! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 54 has overlap=0.004530! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 55 has overlap=0.003465! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 56 has overlap=0.003454! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 57 has overlap=0.003162! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 58 has overlap=0.003711! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 59 has overlap=0.004243! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [  60/100] HPWL=407735, Overlap=0.004243, MaxY=28, Time=5.9s
+  WARNING: Sample 60 has overlap=0.003205! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 61 has overlap=0.003371! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 62 has overlap=0.003347! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 63 has overlap=0.003797! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 64 has overlap=0.004533! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 65 has overlap=0.003532! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 66 has overlap=0.003886! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 67 has overlap=0.003321! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 68 has overlap=0.004250! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 69 has overlap=0.004183! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [  70/100] HPWL=419502, Overlap=0.004183, MaxY=35, Time=6.0s
+  WARNING: Sample 70 has overlap=0.003832! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 71 has overlap=0.004048! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 72 has overlap=0.003811! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 73 has overlap=0.003486! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 74 has overlap=0.003845! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 75 has overlap=0.003358! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 76 has overlap=0.004199! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 77 has overlap=0.003370! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 78 has overlap=0.003598! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 79 has overlap=0.003453! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [  80/100] HPWL=448912, Overlap=0.003453, MaxY=19, Time=5.9s
+  WARNING: Sample 80 has overlap=0.004133! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 81 has overlap=0.004148! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 82 has overlap=0.004909! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 83 has overlap=0.003667! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 84 has overlap=0.003792! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 85 has overlap=0.003454! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 86 has overlap=0.004397! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 87 has overlap=0.003737! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+^[[A  WARNING: Sample 88 has overlap=0.003750! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 89 has overlap=0.003593! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [  90/100] HPWL=467793, Overlap=0.003593, MaxY=39, Time=5.9s
+  WARNING: Sample 90 has overlap=0.003756! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 91 has overlap=0.003791! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 92 has overlap=0.003645! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 93 has overlap=0.003978! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 94 has overlap=0.003889! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 95 has overlap=0.003487! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 96 has overlap=0.004060! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 97 has overlap=0.004218! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 98 has overlap=0.003866! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  WARNING: Sample 99 has overlap=0.004215! (should be 0.0)
+Saved 200 nodes, 800 nets to data/ground_truth/
+  [ 100/100] HPWL=458039, Overlap=0.004215, MaxY=50, Time=5.8s
+
+============================================================
+GROUND TRUTH GENERATION COMPLETE
+============================================================
+  Samples:       100
+  HPWL (mean):   439316 ± 27036
+  Overlap (max): 0.004942
+  All zero-overlap: False
+  Saved to:      data/ground_truth/
+============================================================

@@ -20,8 +20,9 @@ from dataclasses import dataclass
 class PlacementMetrics:
     """Container for placement evaluation metrics."""
     hpwl: float = 0.0
-    overlap_area: float = 0.0
-    overlap_pct: float = 0.0       # overlap / total_module_area * 100
+    overlap_area: float = 0.0        # union overlap area (raster, physical)
+    overlap_pct: float = 0.0         # overlap_area / total_module_area * 100, in [0, 100]
+    overlap_pairwise_sum: float = 0.0  # legacy pairwise sum (can exceed total area)
     congestion: float = 0.0
     total_area: float = 0.0
     canvas_area: float = 0.0
@@ -35,6 +36,7 @@ class PlacementMetrics:
             "hpwl": self.hpwl,
             "overlap_area": self.overlap_area,
             "overlap_pct": self.overlap_pct,
+            "overlap_pairwise_sum": self.overlap_pairwise_sum,
             "congestion": self.congestion,
             "density": self.density,
             "runtime": self.runtime,
@@ -70,13 +72,21 @@ def compute_all_metrics(
     Returns:
         PlacementMetrics dataclass
     """
-    from ..environment.reward import compute_hpwl, compute_congestion, compute_overlap
+    from ..environment.reward import (
+        compute_hpwl, compute_congestion, compute_overlap, compute_overlap_union,
+    )
 
     hpwl = compute_hpwl(positions, nets)
-    overlap = compute_overlap(positions, nodes)
+    overlap_pairwise = compute_overlap(positions, nodes)
+    overlap = compute_overlap_union(
+        positions, nodes, canvas_width=canvas_width, canvas_height=canvas_height,
+    )
     total_module_area = float(np.sum(nodes[:, 1] * nodes[:, 2]))
     canvas_area = canvas_width * canvas_height
-    overlap_pct = (overlap / total_module_area * 100) if total_module_area > 0 else 0.0
+    if total_module_area > 0:
+        overlap_pct = min(100.0, overlap / total_module_area * 100.0)
+    else:
+        overlap_pct = 0.0
     congestion = compute_congestion(positions, nodes,
                                      canvas_width=canvas_width,
                                      canvas_height=canvas_height,
@@ -86,6 +96,7 @@ def compute_all_metrics(
         hpwl=hpwl,
         overlap_area=overlap,
         overlap_pct=overlap_pct,
+        overlap_pairwise_sum=overlap_pairwise,
         congestion=congestion,
         total_area=total_module_area,
         canvas_area=canvas_area,

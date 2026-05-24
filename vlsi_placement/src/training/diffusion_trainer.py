@@ -10,6 +10,7 @@ hand-crafted layouts) → add noise → predict and denoise.
 Reference: VLSI.tex Section 3.2
 """
 
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -19,6 +20,24 @@ from collections import deque
 from tqdm import tqdm
 
 from ..models.diffusion import DiffusionPlacer
+
+
+def _unwrap_batch(
+    x_0: torch.Tensor,
+    module_sizes: torch.Tensor,
+    edge_index: torch.Tensor,
+    edge_attr: torch.Tensor,
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Remove DataLoader batch dim (batch_size=1 adds a leading size-1 axis)."""
+    if x_0.dim() == 3 and x_0.size(0) == 1:
+        x_0 = x_0.squeeze(0)
+    if module_sizes.dim() == 3 and module_sizes.size(0) == 1:
+        module_sizes = module_sizes.squeeze(0)
+    if edge_index.dim() == 3 and edge_index.size(0) == 1:
+        edge_index = edge_index.squeeze(0)
+    if edge_attr.dim() == 3 and edge_attr.size(0) == 1:
+        edge_attr = edge_attr.squeeze(0)
+    return x_0, module_sizes, edge_index, edge_attr
 
 
 class DiffusionTrainer:
@@ -33,11 +52,15 @@ class DiffusionTrainer:
                  lr: float = 1e-4,
                  ema_decay: float = 0.9999,
                  max_grad_norm: float = 1.0,
-                 device: str = "cpu"):
+                 device: str = "cpu",
+                 clear_cuda_cache: bool = False,
+                 model_config: Optional[dict] = None):
         self.diffusion = diffusion.to(device)
         self.ema_decay = ema_decay
         self.max_grad_norm = max_grad_norm
         self.device = device
+        self.clear_cuda_cache = clear_cuda_cache
+        self.model_config = model_config or {}
 
         self.optimizer = optim.AdamW(
             diffusion.denoiser.parameters(), lr=lr, weight_decay=1e-5
@@ -91,6 +114,10 @@ class DiffusionTrainer:
         Returns:
             loss: scalar MSE loss
         """
+        x_0, module_sizes, edge_index, edge_attr = _unwrap_batch(
+            x_0, module_sizes, edge_index, edge_attr,
+        )
+
         self.diffusion.train()
 
         # Random timestep
@@ -99,10 +126,8 @@ class DiffusionTrainer:
             device=self.device
         )
 
-        # Forward: add noise
-        # x_0 shape: (N, 2) → need batch dim → (1, N, 2)
-        x_0_batch = x_0.unsqueeze(0)
-        x_t, noise = self.diffusion.forward_noise(x_0_batch, t)
+        # Forward: add noise — x_0 is (N, 2), batch dim (1, N, 2) for forward_noise
+        x_t, noise = self.diffusion.forward_noise(x_0.unsqueeze(0), t)
         x_t = x_t.squeeze(0)
         noise = noise.squeeze(0)
 
@@ -127,6 +152,10 @@ class DiffusionTrainer:
         self._update_ema()
 
         self.losses.append(loss.item())
+
+        if self.clear_cuda_cache and self.device.startswith("cuda"):
+            torch.cuda.empty_cache()
+
         return loss.item()
 
     def train(self,
@@ -174,8 +203,12 @@ class DiffusionTrainer:
             # Save best
             if avg_loss < best_loss and save_path:
                 best_loss = avg_loss
+                save_dir = os.path.dirname(save_path)
+                if save_dir:
+                    os.makedirs(save_dir, exist_ok=True)
                 torch.save({
                     "diffusion_state_dict": self.diffusion.state_dict(),
+                    "diffusion_model_config": self.model_config,
                     "optimizer_state_dict": self.optimizer.state_dict(),
                     "ema_params": self.ema_params,
                     "epoch": epoch,

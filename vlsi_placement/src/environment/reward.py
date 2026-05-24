@@ -126,3 +126,46 @@ def compute_overlap(
             total_overlap += dx * dy
 
     return total_overlap
+
+
+def compute_overlap_union(
+    positions: np.ndarray,
+    nodes: np.ndarray,
+    canvas_width: float = 1000.0,
+    canvas_height: float = 1000.0,
+    bins: int = 256,
+) -> float:
+    """
+    Geometric overlap area via rasterization (each pixel over-count is physical).
+
+    For every grid cell, if ``coverage`` modules cover it, count
+    ``(coverage - 1) * cell_area``. Summed over cells this is at most
+    ``sum(module_areas)``, so overlap_pct = overlap / total_area is in [0, 100].
+    """
+    N = len(positions)
+    if N == 0:
+        return 0.0
+
+    grid = np.zeros((bins, bins), dtype=np.float32)
+    cell_w = canvas_width / bins
+    cell_h = canvas_height / bins
+    cell_area = cell_w * cell_h
+
+    for i in range(N):
+        cx, cy = positions[i]
+        w, h = nodes[i, 1], nodes[i, 2]
+        left = cx - w / 2
+        right = cx + w / 2
+        bottom = cy - h / 2
+        top = cy + h / 2
+
+        bx0 = max(0, int(np.floor(left / cell_w)))
+        bx1 = min(bins - 1, int(np.floor((right - 1e-9) / cell_w)))
+        by0 = max(0, int(np.floor(bottom / cell_h)))
+        by1 = min(bins - 1, int(np.floor((top - 1e-9) / cell_h)))
+
+        if bx0 <= bx1 and by0 <= by1:
+            grid[by0:by1 + 1, bx0:bx1 + 1] += 1.0
+
+    excess = np.maximum(grid - 1.0, 0.0).sum() * cell_area
+    return float(excess)

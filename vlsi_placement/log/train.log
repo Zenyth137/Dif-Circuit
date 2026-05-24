@@ -1,0 +1,16 @@
+Device: cuda
+Config: {'netlist': {'num_modules': 200, 'num_nets': 800}, 'environment': {'grid_size': 64, 'max_modules': 200, 'w_hpwl': 1.0, 'w_congestion': 0.5, 'w_overlap': 0.2}, 'policy': {'grid_size': 64, 'hidden_dim': 128, 'gnn_layers': 3, 'gnn_heads': 4}, 'ppo': {'lr': 0.0003, 'gamma': 0.99, 'lam': 0.95, 'clip_eps': 0.2, 'value_coef': 0.5, 'entropy_coef': 0.01, 'epochs': 10, 'batch_size': 64}, 'num_iterations': 2000, 'episodes_per_iter': 16, 'early_stop_patience': 100}
+Policy params: 241,921
+Early stopping at iteration 142
+
+Final evaluation:
+  mean_reward: -228268.5330
+  std_reward: 26762.0080
+  mean_hpwl: 225319.5312
+  std_hpwl: 26745.7383
+./log/train.log
+PPO Training:   0%|                        | 0/2000 [00:00<?, ?it/s]/mnt/fuso/DC/vlsi_placement/scripts/../src/models/gnn.py:108: UserWarning: index_reduce() is in beta and the API may change at any time. (Triggered internally at /pytorch/aten/src/ATen/native/cuda/Indexing.cu:1541.)
+  alpha_max.index_reduce_(0, dst, alpha, 'amax', include_self=False)
+PPO Training:   3%| | 51/2000 [01:49<1:09:34,  2.14s/it, reward=-105
+PPO Training:   6%| | 116/2000 [04:14<1:12:52,  2.32s/it, reward=-10
+PPO Training:   7%| | 142/2000 [05:13<1:08:22,  2.21s/it, reward=-10

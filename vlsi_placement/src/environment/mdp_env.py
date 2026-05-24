@@ -26,6 +26,7 @@ class EnvConfig:
     # Reward weights
     w_hpwl: float = 1.0
     w_congestion: float = 0.5
+    w_overlap: float = 0.0
     # Congestion grid
     congestion_bins: int = 16
 
@@ -179,7 +180,7 @@ class MacroPlacementEnv:
 
     def _compute_terminal_reward(self) -> float:
         """Compute terminal reward: negative weighted sum of HPWL and congestion."""
-        from .reward import compute_hpwl, compute_congestion
+        from .reward import compute_hpwl, compute_congestion, compute_overlap_union
 
         if self.nodes is None or self.nets is None:
             return 0.0
@@ -197,8 +198,17 @@ class MacroPlacementEnv:
             canvas_height=self.cfg.canvas_height,
             nets=self.nets,
         )
+        overlap = compute_overlap_union(
+            positions, self.nodes,
+            canvas_width=self.cfg.canvas_width,
+            canvas_height=self.cfg.canvas_height,
+        )
 
-        reward = -(self.cfg.w_hpwl * hpwl + self.cfg.w_congestion * congestion)
+        reward = -(
+            self.cfg.w_hpwl * hpwl
+            + self.cfg.w_congestion * congestion
+            + self.cfg.w_overlap * overlap
+        )
         return float(reward)
 
     def get_placement(self) -> np.ndarray:

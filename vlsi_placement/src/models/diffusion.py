@@ -61,6 +61,7 @@ class DiffusionPlacer(nn.Module):
                  # Energy guidance weights
                  lambda_overlap: float = 10.0,
                  lambda_hpwl: float = 0.1,
+                 hpwl_temperature: float = 1.0,
                  guidance_scale: float = 1.0,  # η in the paper
                  # Canvas geometry (for clipping + variance calibration)
                  canvas_width: float = 1000.0,
@@ -82,6 +83,7 @@ class DiffusionPlacer(nn.Module):
         self.energy_fn = EnergyFunction(
             lambda_overlap=lambda_overlap,
             lambda_hpwl=lambda_hpwl,
+            hpwl_temperature=hpwl_temperature,
         )
         self.guidance_scale = guidance_scale
 
@@ -113,7 +115,6 @@ class DiffusionPlacer(nn.Module):
         x_t = sqrt_alpha * x_0 + sqrt_one_minus * noise
         return x_t, noise
 
-    @torch.no_grad()
     def sample(self,
                x_k: torch.Tensor,
                module_sizes: torch.Tensor,
@@ -160,44 +161,32 @@ class DiffusionPlacer(nn.Module):
 
         for i, t_idx in enumerate(step_indices):
             t = torch.tensor([t_idx], device=device, dtype=torch.long)
-
-            # 1. Predict noise via denoiser
-            eps_pred = self.denoiser(x_t, t, module_sizes, edge_index, edge_attr)
-
-            # 2. Compute μ_θ (predicted X_0 from noise)
             alpha_t = self.alphas[t_idx]
             alpha_cumprod_t = self.alphas_cumprod[t_idx]
             beta_t = self.betas[t_idx]
 
-            # Predicted X_0
-            x_0_pred = (x_t - torch.sqrt(1 - alpha_cumprod_t) * eps_pred) / \
-                       torch.sqrt(alpha_cumprod_t)
+            # Denoising step (no grad through denoiser at inference)
+            with torch.no_grad():
+                eps_pred = self.denoiser(x_t, t, module_sizes, edge_index, edge_attr)
+                coef = (1 - alpha_t) / torch.sqrt(1 - alpha_cumprod_t)
+                x_t = (1.0 / torch.sqrt(alpha_t)) * (x_t - coef * eps_pred)
 
-            # 3. Energy gradient (overlap repulsion + HPWL)
+            # Energy guidance needs autograd on positions only
             if self.guidance_scale > 0 and nets is not None:
+                x_for_energy = x_t.detach().requires_grad_(True)
                 energy_grad = self.energy_fn.gradient(
-                    x_t, module_sizes, nets
+                    x_for_energy, module_sizes, nets,
                 )
-            else:
-                energy_grad = torch.zeros_like(x_t)
+                with torch.no_grad():
+                    x_t = x_t - self.guidance_scale * energy_grad
 
-            # 4. Reverse step with energy guidance
-            # X_{t-1} = 1/√α_t * (X_t - (1-α_t)/√(1-ᾶ_t) * ε_θ) - η∇E + σ_t z
-            coef = (1 - alpha_t) / torch.sqrt(1 - alpha_cumprod_t)
-            x_t = (1.0 / torch.sqrt(alpha_t)) * (x_t - coef * eps_pred)
+            with torch.no_grad():
+                if t_idx > 1:
+                    sigma_t = torch.sqrt(beta_t)
+                    x_t = x_t + torch.randn_like(x_t) * sigma_t
 
-            # Energy guidance
-            x_t = x_t - self.guidance_scale * energy_grad
-
-            # Add noise (except at t=1)
-            if t_idx > 1:
-                sigma_t = torch.sqrt(beta_t)
-                noise = torch.randn_like(x_t) * sigma_t
-                x_t = x_t + noise
-
-            # Clip to canvas bounds
-            x_t[:, 0] = torch.clamp(x_t[:, 0], 0.0, self.canvas_width)
-            x_t[:, 1] = torch.clamp(x_t[:, 1], 0.0, self.canvas_height)
+                x_t[:, 0] = torch.clamp(x_t[:, 0], 0.0, self.canvas_width)
+                x_t[:, 1] = torch.clamp(x_t[:, 1], 0.0, self.canvas_height)
 
             if return_trajectory:
                 trajectory.append(x_t.clone())
@@ -255,6 +244,14 @@ class DiffusionPlacer(nn.Module):
               f"matched K={K} (1-ᾶ_K={actual_variance:.4f})")
 
         return K
+
+    def load_ema(self, ema_params: Optional[dict]) -> None:
+        """Load EMA parameters for the denoiser if available."""
+        if ema_params is None:
+            return
+        for name, param in self.denoiser.named_parameters():
+            if name in ema_params:
+                param.data.copy_(ema_params[name].to(param.data.device))
 
     def compute_loss(self,
                      x_0: torch.Tensor,

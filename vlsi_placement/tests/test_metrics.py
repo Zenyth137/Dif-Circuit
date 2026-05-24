@@ -41,6 +41,14 @@ class TestMetrics(unittest.TestCase):
         self.assertIn("overlap_pct", d)
         self.assertIn("congestion", d)
 
+    def test_overlap_pct_bounded(self):
+        """Stacked modules: union overlap% must not exceed 100%."""
+        nodes = np.array([[0, 10.0, 10.0], [1, 10.0, 10.0]], dtype=np.float32)
+        positions = np.array([[50.0, 50.0], [50.0, 50.0]], dtype=np.float32)
+        metrics = compute_all_metrics(positions, nodes, [[0, 1]])
+        self.assertLessEqual(metrics.overlap_pct, 100.0)
+        self.assertGreater(metrics.overlap_pct, 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

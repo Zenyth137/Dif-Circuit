@@ -85,6 +85,23 @@ class NetlistGenerator:
         self._nets = nets
         return nodes, nets
 
+    def truncate_to_max_modules(self, max_modules: int) -> Tuple[np.ndarray, list]:
+        """
+        Keep the first ``max_modules`` modules and nets whose pins lie in that range.
+
+        Updates internal state so ``build_edge_index()`` matches the truncated netlist.
+        """
+        if self._nodes is None or self._nets is None:
+            raise ValueError("Must call generate() first.")
+
+        from .prepare import truncate_netlist, attach_netlist_to_generator
+
+        nodes, nets = truncate_netlist(
+            self._nodes, self._nets, max_modules, self.config.min_pins_per_net
+        )
+        attach_netlist_to_generator(self, nodes, nets)
+        return nodes, nets
+
     def _generate_nets(self, num_modules: int) -> list:
         """Generate random hyperedges connecting modules."""
         cfg = self.config
@@ -145,6 +162,40 @@ class NetlistGenerator:
 
         edge_index = np.array([sources, targets], dtype=np.int64)
         edge_attr = np.array(weights, dtype=np.float32).reshape(-1, 1)
+        return edge_index, edge_attr
+
+    def build_module_edge_index(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Module↔module edges from net co-occurrence (for DenoiserNet / module-only GNN).
+
+        Returns:
+            edge_index: (2, E) with indices in [0, num_modules)
+            edge_attr: (E, 1) weights (1 / pin_count per net)
+        """
+        if self._nets is None:
+            raise ValueError("Must call generate() first.")
+
+        sources = []
+        targets = []
+        weights = []
+
+        for net in self._nets:
+            if len(net) < 2:
+                continue
+            w = 1.0 / len(net)
+            for i in range(len(net)):
+                for j in range(i + 1, len(net)):
+                    u, v = net[i], net[j]
+                    sources.extend([u, v])
+                    targets.extend([v, u])
+                    weights.extend([w, w])
+
+        if not sources:
+            edge_index = np.zeros((2, 0), dtype=np.int64)
+            edge_attr = np.zeros((0, 1), dtype=np.float32)
+        else:
+            edge_index = np.array([sources, targets], dtype=np.int64)
+            edge_attr = np.array(weights, dtype=np.float32).reshape(-1, 1)
         return edge_index, edge_attr
 
     def save(self, output_dir: str, prefix: str = "netlist"):
