@@ -1,0 +1,223 @@
+\documentclass[12pt, a4paper]{article}
+
+% --- 宏包加载 ---
+\usepackage[UTF8]{ctex} % 中文支持
+\usepackage{geometry}   % 页边距设置
+\usepackage{titlesec}   % 标题格式定制
+\usepackage{titletoc}   % 目录格式
+\usepackage{booktabs}   % 三线表 [cite: 25]
+\usepackage{graphicx}   % 图片支持
+\usepackage{setspace}   % 行间距 
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{caption}    % 图表标题定制
+\usepackage{fancyhdr}   % 页眉页脚
+
+% --- 页面设置 ---
+\geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+\setlength{\parindent}{2em} % 首行缩进
+\setstretch{1.4} % 约等于20磅行距 (12pt * 1.4 \approx 17-20pt) 
+
+% --- 字体字号定义 ---
+% 12pt 对应 小四号
+\newcommand{\yihao}{\fontsize{26pt}{39pt}\selectfont}  % 一号
+\newcommand{\sanhao}{\fontsize{16pt}{24pt}\selectfont} % 三号
+\newcommand{\sihao}{\fontsize{14pt}{21pt}\selectfont}   % 四号
+\newcommand{\xiaosi}{\fontsize{12pt}{18pt}\selectfont} % 小四
+\newcommand{\wuhao}{\fontsize{10.5pt}{15.75pt}\selectfont} % 五号
+\newcommand{\liuhao}{\fontsize{7.5pt}{11pt}\selectfont}   % 六号
+\newcommand{\xiaowu}{\fontsize{9pt}{13.5pt}\selectfont}   % 小五
+
+% --- 标题格式设置 [cite: 21-23] ---
+\titleformat{\section}{\sihao\heiti}{\thesection}{1em}{} % 一级标题：4号黑体
+\titlespacing*{\section}{0pt}{1\baselineskip}{1\baselineskip}
+
+\titleformat{\subsection}{\wuhao\heiti}{\thesubsection}{1em}{} % 二级标题：5号黑体
+\titlespacing*{\subsection}{0pt}{0.5\baselineskip}{0.5\baselineskip}
+
+\titleformat{\subsubsection}{\wuhao\kaishu}{\thesubsubsection}{1em}{} % 三级标题：5号楷体
+\titlespacing*{\subsubsection}{0pt}{0.5\baselineskip}{0.5\baselineskip}
+
+% --- 图表标题设置  ---
+\usepackage{caption}
+\DeclareCaptionFont{myLiuhao}{\liuhao}
+% 2. 统一设置图表标题格式 
+\captionsetup{
+    labelsep=quad,
+    font={bf, stretch=1}, 
+    labelfont={bf},
+    textfont={bf},
+    % 强制指定字号
+    font+=myLiuhao
+}
+
+% 3. 图片标题位于下方 
+\captionsetup[figure]{position=bottom}
+
+% 4. 表格标题位于上方 [cite: 25]
+\captionsetup[table]{position=top}
+
+% --- 参考文献环境设置  ---
+\newenvironment{mybibliography}[1]{
+    \section*{参考文献 (References)}
+    \fontsize{7.5pt}{11pt}\selectfont % 内容：6号宋体
+    \list{\arabic{enumi}.}{
+        \usecounter{enumi}
+        \setlength{\leftmargin}{2em}
+        \setlength{\itemsep}{0pt}
+    }
+}{\endlist}
+
+% --- 正文开始 ---
+\begin{document}
+
+% --- 标题部分 [cite: 16] ---
+\begin{center}
+    {\sanhao\heiti 深度学习模型在VLSI设计中的应用调研报告} \\ % 三号黑体居中
+    \vspace{1\baselineskip}
+    
+    % --- 作者姓名 [cite: 17] ---
+    {\sihao\fangsong 周钰淏} \\ % 4号仿宋体居中
+    \vspace{0.5\baselineskip}
+    
+    % --- 作者院系 [cite: 18] ---
+    {\xiaosi\songti 集成电路与微纳电子创新学院} \\ % 小4号宋体居中
+    \vspace{1\baselineskip}
+\end{center}
+
+% --- 摘要与关键词 [cite: 19] ---
+\noindent {\xiaosi\heiti 摘要：} {\xiaosi\songti 这里是摘要内容，使用小四号宋体。描述调研问题的背景、重要性、研究现状以及主要结论。} 
+\vspace{1\baselineskip}
+
+\noindent {\xiaosi\heiti 关键词：} {\xiaosi\songti 图神经网络；扩散模型；VLSI设计；} % 3~5个，分号分隔
+\vspace{1\baselineskip}
+
+% --- 正文  ---
+\section{问题背景}
+随着集成电路工艺来到了3nm节点，摩尔定律在物理与经济双重维度上面临严峻考验。现代超大规模集成电路的门级网表规模发展迅速，单一芯片内集成的晶体管数量也到达了千万级的数量。在芯片物理设计的诸多环节中，布局与布局规划直接决定了芯片的最终布线性、时序收敛及功耗表现，是整个 EDA 流程中极为核心且计算复杂度极高的 NP-hard 组合优化问题。如何在满足极其严苛的设计规则与物理硬约束的前提下，于庞大的连续坐标解空间中寻得全局最优解，已成为现代 EDA 领域的“算力墙”。
+
+在过去的二十年中，工业界与学术界的主流布局范式主要依赖两类方法：一是以模拟退火为代表的启发式算法，二是以静电场模拟（如 ePlace、RePlAce、DREAMPlace等）为代表的解析法。模拟退火算法依赖诸如 B*-tree 或 Sequence Pair 的拓扑数据结构，其随机扰动的本质导致了大量无效的解空间搜索，计算时间难以承受；目前解析法是广泛接受的电路自动化设计的方法。解析法通过平滑化处理将不可导的物理约束（如重叠惩罚）转化为可导的连续函数，能够高效获得全局线长较优的宏观位置。可惜的是，解析法容易陷入局部最优，这也是目前研究的重点。
+
+近年来，深度学习方法在电子自动化设计中展现出了强大的能力。图神经网络通过将电路网表建模为图/超图，能够精准捕捉模块间的复杂拓扑关联；强化学习则将布局转化为序贯决策过程，通过离线预训练换取在线的高效推理，在宏观拓扑生成上取得了显著突破。本文在此基础上，进一步研究深度学习和强化学习在 VLSI 中的应用现状，并提出了一种基于扩散模型的连续坐标合法化与压缩方法，以期在布局优化中取得进一步的优化。
+
+
+\section{研究现状} 
+深度学习和强化学习模型在布局与规划中的应用有下：
+\subsection{AlphaChip：序贯决策}
+
+Google 团队发表于 \emph{Nature} 的 AlphaChip，从根本上重构了宏单元布局的数学表达。该工作创新性地将布局过程建模为\textbf{马尔可夫决策过程（MDP）}。具体而言，算法首先将连续芯片画布离散化为规则网格，并将宏单元放置过程视为一个序贯决策问题：智能体在每一步选择某一宏单元及其对应网格坐标，直至完成全部模块布局。
+
+在奖励机制设计方面，由于布局质量无法在中间状态被直接评估，因此算法采用终态奖励策略。当所有模块放置完成后，系统基于半周长线长（HPWL）、布线拥塞度以及面积密度等指标构建加权标量奖励，并利用近端策略优化（PPO）算法更新策略网络参数。
+
+AlphaChip 的核心贡献在于，其通过对上万个工业网表进行预训练，首次验证了模型在面对未知网表时具备“零样本迁移（Zero-shot Transfer）”能力，说明强化学习能够学习具有泛化性的布局先验。然而，该方法在真实工业场景中仍存在显著局限性。一方面，连续物理空间被强制映射至离散网格后，会产生不可避免的\textbf{网格量化误差}，从而造成空间浪费；另一方面，基于标量试错反馈的强化学习机制在处理“绝对零重叠”等硬约束时缺乏有效梯度引导，因此收敛效率较低。此外，由于策略空间巨大，并且缺乏优良的训练数据集，模型在训练初期往往会陷入随机搜索的困境，导致训练时间过长且结果不稳定。
+
+\subsection{边图神经网络：拓扑嵌入}
+
+在物理设计任务中，如何准确评估当前布局状态的优劣，是引导后续优化过程的关键。传统图卷积网络通常仅将标准单元或宏单元抽象为节点进行建模，但忽略了电路网表本质上属于一种\textbf{超图结构}：单条物理连线往往同时连接多个引脚，而非简单的点对点关系。
+
+针对这一问题，以 \emph{Circuit GNN} 为代表的工作提出了新的图表示方式。这类方法通过构建\textbf{二分图结构}，或引入边注意力机制（Edge-GAT），使“线网”本身也能够作为特征实体参与消息传递过程，从而显式建模节点与连线之间的高阶拓扑关系。
+
+大量实验结果表明，相比传统节点级 GNN，仅依赖节点聚合的方式难以充分表达真实布线关系，而显式进行边特征建模后，拥塞预测与线长估计的 $R^2$ 分数均得到显著提升。因此，该研究方向不仅提高了物理设计预测任务的精度，也为后续构建基于图结构引导的 Diffusion 布局生成模型提供了高保真的低维向量表征基础。
+
+\subsection{AI+EA： 传统算法的智能引导}
+
+传统启发式算法又面临搜索效率低、计算资源消耗大的问题，而AI正好可以引导算法进行更智慧的搜索。其中，由上海交通大学、天津大学与华为诺亚方舟实验室联合提出的 \textbf{CORE} 算法，是该领域的重要代表工作。
+
+传统 Floorplanning 方法通常依赖 \textbf{B*-tree} 或 \textbf{Sequence Pair（SP）} 等拓扑结构描述布局状态，并结合模拟退火（SA）进行随机扰动搜索。然而，大量随机生成的拓扑变换往往会引发严重的面积重叠与空间浪费，从而导致搜索效率较低。针对这一问题，CORE 创新性地引入 Actor-Critic 强化学习框架，使神经网络能够主动学习“高价值扰动”的生成规律，从而替代传统 SA 中基于随机数的盲目搜索机制。
+
+在具体实现中，神经网络通过感知当前布局对应的局部图结构特征，直接预测更有可能带来收益的拓扑操作，例如节点交换、模块旋转等。实验结果表明，该方法能够显著减少无效搜索，并有效提升解空间剪枝效率。相较于传统随机扰动策略，CORE 不仅在收敛速度上实现数倍提升，其最终得到的 Area 与 HPWL 帕累托前沿结果也明显更优。
+
+\section{数学建模} 
+为了解决传统基于网格的强化学习在连续物理空间中所固有的量化误差与空白浪费问题，本文提出了一种端到端的“粗细结合”级联双范式。该范式的核心逻辑在于：首先通过马尔可夫决策过程生成具有全局视野的初始宏观拓扑，随后将该输出视为连续空间中的带噪状态，利用引入了物理能量引导的条件扩散模型进行合法化与空白压缩。
+
+\subsection{第一阶段：基于 MDP 的全局宏观拓扑生成}
+
+我们将全局布局过程严格建模为一个有限视野的序贯决策过程。具体而言，定义马尔可夫决策过程的五元组为 $(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$。假设芯片画布已被预先离散化为均匀网格，且系统存在 $N$ 个待放置的宏单元。
+
+在任意决策时刻 $t$，系统处于状态 $s_t \in \mathcal{S}$。该状态不仅包含了当前画布的网格密度矩阵以及待放置模块的几何特征，还融合了通过图神经网络提取的网表拓扑嵌入向量。基于当前状态的感知，智能体通过策略网络输出动作 $a_t = (x, y) \in \mathcal{A}$，决定将第 $t$ 个模块放置于特定的网格坐标上。随着动作的执行，环境确定性地转移至下一状态。
+
+为了在宏观上引导模型优化全局线长与布线拥塞度，我们设计了一种延迟惩罚机制。由于中间步骤的布局好坏难以准确评估，系统仅在终态（即 $t=N$，所有模块放置完毕时）计算整体奖励函数 $\mathcal{R}$。该奖励函数被定义为半周长线长与拥塞度的加权负和，具体推导如下：
+$$\begin{aligned} 
+r_t &= \begin{cases} 
+0, & t < N \\ 
+-\left( \omega_1 \cdot \text{HPWL}(s_N) + \omega_2 \cdot \text{Congestion}(s_N) \right), & t = N 
+\end{cases} 
+\end{aligned}$$
+
+通过强化学习策略 $\pi_\theta(a_t|s_t)$ 进行充分采样与策略梯度更新后，我们提取终态布局的中心坐标，将其记为连续坐标矩阵 $\mathbf{X}_K \in \mathbb{R}^{N \times 2}$。不可忽视的是，由于网格量化误差的存在，$\mathbf{X}_K$ 虽具备良好的全局拓扑特征，但在微观坐标系下必然存在非法的模块重叠与无效空白。这构成了我们第二阶段推导的初始条件。
+
+\subsection{第二阶段：基于扩散模型的局部合法化与空白压缩}
+
+在连续的二维物理空间中，我们将上一阶段残留了重叠与白墙的松散布局定义为具有物理噪声的高熵状态，而将我们所期望的绝对紧凑、满足设计规则的合法布局定义为纯净的低熵状态，记作 $\mathbf{X}_0 \in \mathbb{R}^{N \times 2}$。
+
+\subsubsection{前向过程推导：物理加噪隐喻}
+
+我们首先构建前向物理加噪的数学模型。假设存在一个完美的终态布局 $\mathbf{X}_0$，我们通过马尔可夫链向其坐标阵列中逐步注入高斯噪声，以此模拟模块发生随机漂移、进而产生重叠与空隙的物理破坏过程。定义 $\beta_t$ 为时间步 $t$ 的方差表，单步状态转移概率密度函数可严格表示为：
+$$\begin{aligned} 
+q(\mathbf{X}_t | \mathbf{X}_{t-1}) &= \mathcal{N}(\mathbf{X}_t; \sqrt{1-\beta_t}\mathbf{X}_{t-1}, \beta_t \mathbf{I}) 
+\end{aligned}$$
+
+基于高斯分布的叠加性质，我们引入累积连乘变量 $\bar{\alpha}_t = \prod_{i=1}^t (1-\beta_i)$。利用重参数化技巧，任意时刻 $t$ 的状态分布可直接由初始状态 $\mathbf{X}_0$ 闭式推导出：
+$$\begin{aligned} 
+q(\mathbf{X}_t | \mathbf{X}_0) &= \mathcal{N}(\mathbf{X}_t; \sqrt{\bar{\alpha}_t}\mathbf{X}_0, (1-\bar{\alpha}_t)\mathbf{I}) 
+\end{aligned}$$
+
+根据这一推导逻辑，当时间步演进至某个特定的中间态 $t=K$ 时，我们有理由假设：此时的带噪状态 $q(\mathbf{X}_K|\mathbf{X}_0)$ 在数据分布与物理表现上，恰好等效于第一阶段 RL 所输出的粗糙布局 $\mathbf{X}_K$。这就巧妙地将 MDP 的终点转化为了扩散模型的起点。
+
+\subsubsection{反向去噪与物理能量引导采样}
+
+在反向的降噪推演中，核心在于训练一个参数化的深度神经网络 $\epsilon_\theta(\mathbf{X}_t, t, \mathbf{C})$，用以预测并剥离当前坐标阵列中的“噪声向量”。为了维系物理连线的拓扑特征，我们将电路网表抽象为边属性图，选用边图神经网络作为预测主干。网络在给定静态物理条件 $\mathbf{C}$（包含模块尺寸集合 $\mathbf{W} \times \mathbf{H}$ 与网表邻接矩阵 $\mathbf{A}$）的约束下进行特征传递。
+
+然而，传统的得分匹配生成范式仅致力于拟合数据分布，这在数学上无法提供绝对零重叠的刚性保证。为了突破这一局限，本文引入了物理能量引导（Energy-Guided Sampling）机制。我们构造系统的总物理能量 $E(\mathbf{X}_t)$，将其定义为重叠惩罚与线长惩罚的连续可导加权和：
+$$\begin{aligned} 
+E(\mathbf{X}_t) &= \lambda_{ovlp} \sum_{i \neq j} \max(0, \Delta x_{ij}) \max(0, \Delta y_{ij}) + \lambda_{hpwl} \sum_{e \in \mathcal{E}} \text{BB}_{e}(\mathbf{X}_t) 
+\end{aligned}$$
+式中，$\Delta x_{ij}$ 与 $\Delta y_{ij}$ 代表模块对 $(i,j)$ 在横纵坐标上的侵入深度，其乘积即为相交面积；$\text{BB}_{e}(\mathbf{X}_t)$ 则是网表 $\mathcal{E}$ 中每条边 $e$ 所构成的边界框半周长。
+
+在反向生成的离散迭代求解过程中，我们计算该能量函数对当前坐标矩阵的梯度 $\nabla_{\mathbf{X}_t} E(\mathbf{X}_t)$。该梯度实质上构成了一个连续物理空间中的向量场。我们将此向量场作为显式的干预项，结合退火朗之万动力学，推导出改良后的最终反向采样公式：
+$$\begin{aligned} 
+\mathbf{X}_{t-1} &= \frac{1}{\sqrt{\alpha_t}} \left( \mathbf{X}_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \epsilon_\theta(\mathbf{X}_t, t, \mathbf{C}) \right) - \eta \nabla_{\mathbf{X}_t} E(\mathbf{X}_t) + \sigma_t \mathbf{z} 
+\end{aligned}$$
+在该方程中，第一项代表了由 GNN 数据驱动的去噪基准方向，第二项是通过步长 $\eta$ 调节的物理能量排斥梯度，第三项 $\mathbf{z} \sim \mathcal{N}(0, \mathbf{I})$ 则为注入的随机噪声以保障解空间的探索多样性。
+
+综上推导，在反向降噪的每一步中，GNN 依据图拓扑提供全局聚拢的引力，而物理能量梯度的反向传播则提供了防止重叠的局部斥力。两股力量在连续坐标系下相互博弈并趋于动态平衡，最终驱使松散的初始布局 $\mathbf{X}_K$ 坍缩为极致紧凑且完美合法化的最终布局 $\mathbf{X}_0$。
+% --- 图示例 [cite: 24] ---
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=0.5\textwidth]{example-image} % 替换为实际图片名
+%     \caption{标准单元移动示意图 \\ \textbf{Schematic of Standard Cell Movement}} 
+% \end{figure}
+
+\section{实验数据} % [cite: 9, 10]
+描述实验设置，与谁对比，有何收益。
+
+% --- 表示例 [cite: 25] ---
+\begin{table}[htbp]
+    \centering
+    \caption{\textbf{不同算法性能对比表} \\ \textbf{Performance Comparison of Different Algorithms}}
+    \begin{tabular}{ccc}
+        \toprule
+        算法名称 & 线长收益 / \% & 运行时间 / s \\
+        \midrule
+        Abacus & 15.2 & 120 \\
+        Algorithm B & 10.5 & 200 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{总结与展望} % [cite: 11, 12]
+体现个人思考和对未来研究方向的预判。
+
+\vspace{2em}
+
+% --- 参考文献 [cite: 26-35] ---
+\section*{\xiaowu\heiti 参考文献 (References)}
+\begin{enumerate}
+    \fontsize{7.5pt}{9pt}\selectfont % 6号宋体内容
+    \setlength{\itemsep}{0pt}
+    \item {[1]} 主要责任者．文献题名[M]．出版地：出版者，出版年：起止页码． [cite: 29]
+    \item {[2]} Spindler P, Schlichtmann U. Abacus: Fast legalization of standard cell circuits with minimal movement[C]//Proceedings of the 2008 international symposium on Physical design. 2008: 47-54. [cite: 14, 39]
+    \item {[3]} 主要责任者．文献题名[J]．刊名，年，卷（期）：起止页码． [cite: 35]
+\end{enumerate}
+
+\end{document}
