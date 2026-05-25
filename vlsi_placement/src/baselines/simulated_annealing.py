@@ -88,29 +88,27 @@ class BStarTree:
         return self
 
     def _insert_random(self, module_id: int):
-        """Insert a new module at a random position in the tree."""
+        """Insert a new module at a random free slot in the tree."""
         node = self.Node(module_id)
-        self.node_map[module_id] = node
 
-        # Find a random existing node to attach to
-        existing = list(self.node_map.values())
-        parent = random.choice(existing)
+        # Find nodes with at least one free child slot (EXCLUDING the new node)
+        candidates = [n for n in self.node_map.values()
+                      if n.left is None or n.right is None]
+        if not candidates:
+            candidates = list(self.node_map.values())
+        parent = random.choice(candidates)
 
-        # Randomly choose left or right
-        if random.random() < 0.5:
-            if parent.left is None:
-                parent.left = node
-                node.parent = parent
-            else:
-                parent.right = node
-                node.parent = parent
+        # Attach to free slot
+        if parent.left is None:
+            parent.left = node
+        elif parent.right is None:
+            parent.right = node
         else:
-            if parent.right is None:
-                parent.right = node
-                node.parent = parent
-            else:
-                parent.left = node
-                node.parent = parent
+            parent.left = node  # fallback (shouldn't happen)
+        node.parent = parent
+
+        # Add to map AFTER attaching (so node can't be its own parent)
+        self.node_map[module_id] = node
 
     def to_positions(self,
                      modules: np.ndarray,
@@ -143,31 +141,37 @@ class BStarTree:
             if node.rotated:
                 w, h = h, w
 
-            # Find lowest y at which module fits within x_offset..x_offset+w
+            # Find lowest y at which module fits: max contour height over
+            # all contour segments that overlap with the module's x-range.
             place_y = 0.0
-            # Simple greedy: pack from bottom
-            for i in range(len(contour)):
-                xs, xe, yc = contour[i]
-                if x_offset >= xs and x_offset + w <= canvas_width:
+            for (xs, xe, yc) in contour:
+                if x_offset + w > xs and x_offset < xe:
                     place_y = max(place_y, yc)
 
             # Place module
             positions[mid] = [x_offset, place_y]
 
-            # Update contour
+            # Update contour: replace ALL overlapping segments with a single raised
+            # segment, preserving non-overlapping left/right edges of each segment.
             new_contour = []
             inserted = False
             for (xs, xe, yc) in contour:
                 if xe <= x_offset or xs >= x_offset + w:
+                    # Non-overlapping — keep as-is
                     new_contour.append((xs, xe, yc))
+                elif not inserted:
+                    # First overlapping segment: emit raised segment
+                    if xs < x_offset:
+                        new_contour.append((xs, x_offset, yc))
+                    new_contour.append((x_offset, x_offset + w, place_y + h))
+                    if xe > x_offset + w:
+                        new_contour.append((x_offset + w, xe, yc))
+                    inserted = True
                 else:
-                    if not inserted:
-                        if xs < x_offset:
-                            new_contour.append((xs, x_offset, yc))
-                        new_contour.append((x_offset, x_offset + w, place_y + h))
-                        if xe > x_offset + w:
-                            new_contour.append((x_offset + w, xe, yc))
-                        inserted = True
+                    # Subsequent overlapping segment: only keep the right
+                    # part that extends beyond the module (if any)
+                    if xe > x_offset + w:
+                        new_contour.append((x_offset + w, xe, yc))
             if not inserted:
                 new_contour.append((x_offset, x_offset + w, place_y + h))
 
@@ -204,7 +208,7 @@ class BStarTree:
         self.node_map[mid].rotated = not self.node_map[mid].rotated
 
     def perturb_move(self):
-        """Move a node within the tree (detach and re-insert)."""
+        """Move a node within the tree (detach and re-insert at a free slot)."""
         keys = list(self.node_map.keys())
         if len(keys) < 2:
             return
@@ -224,28 +228,26 @@ class BStarTree:
         else:
             parent.right = None
 
-        # Re-insert at random position
+        # Find a target with at least one free child slot
         targets = [n for n in self.node_map.values()
-                   if n != node and n != parent]
+                   if n != node and (n.left is None or n.right is None)]
         if not targets:
-            # Re-attach to original parent
+            # No free slot — re-attach to original parent
             if parent.left is None:
                 parent.left = node
-            else:
+            elif parent.right is None:
                 parent.right = node
+            else:
+                # Original parent is full too, just put as left
+                parent.left = node
+            node.parent = parent
             return
+
         target = random.choice(targets)
-        side = 'left' if random.random() < 0.5 else 'right'
-        if side == 'left':
-            if target.left is None:
-                target.left = node
-            else:
-                target.right = node
+        if target.left is None:
+            target.left = node
         else:
-            if target.right is None:
-                target.right = node
-            else:
-                target.left = node
+            target.right = node
         node.parent = target
 
     def copy(self) -> 'BStarTree':

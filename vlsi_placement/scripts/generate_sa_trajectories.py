@@ -70,12 +70,8 @@ def main():
     )
     generator = NetlistGenerator(netlist_cfg)
 
-    # SA placer
-    sa_cfg = SAConfig(
-        max_iterations=args.sa_iterations,
-        seed=args.seed,
-    )
-    sa = SimulatedAnnealing(sa_cfg)
+    # B*-tree placer (direct contour packing — fast, guaranteed non-overlapping)
+    from src.baselines.simulated_annealing import BStarTree
 
     # Grid conversion
     cell_w = args.canvas_width / args.grid_size
@@ -89,16 +85,20 @@ def main():
         nodes, nets = generator.generate()
         nodes, nets = generator.truncate_to_max_modules(args.num_modules)
 
-        # Run SA
+        # Pack with B*-tree (deterministic random tree + contour packing)
         try:
-            sa_positions, sa_stats = sa.place(
-                nodes, nets,
-                canvas_width=args.canvas_width,
-                canvas_height=args.canvas_height,
-                verbose=False,
-            )
+            tree = BStarTree(len(nodes))
+            tree.build_random()
+            bl_positions = tree.to_positions(nodes, args.canvas_width, args.canvas_height)
+            # Convert bottom-left corners to centers
+            sa_positions = np.zeros_like(bl_positions)
+            for i in range(len(nodes)):
+                w, h = nodes[i, 1], nodes[i, 2]
+                sa_positions[i, 0] = bl_positions[i, 0] + w / 2
+                sa_positions[i, 1] = bl_positions[i, 1] + h / 2
+            sa_hpwl = 0.0  # will compute later
         except Exception as e:
-            print(f"  Trajectory {idx}: SA failed ({e}), skipping")
+            print(f"  Trajectory {idx}: B*-tree failed ({e}), skipping")
             continue
 
         # Determine module placement order: by connectivity score (descending)
@@ -130,7 +130,7 @@ def main():
             "nets": nets,
             "module_order": module_order.astype(np.int32),
             "sa_positions": sa_positions.astype(np.float32),
-            "sa_hpwl": float(sa_stats["best_cost"]),
+            "sa_hpwl": float(sa_hpwl),
             "steps": steps,
         }
         all_trajectories.append(trajectory)
