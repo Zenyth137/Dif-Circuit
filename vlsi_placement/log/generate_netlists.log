@@ -1,13 +1,112 @@
-Generating 10 netlists with 200 modules, 800 nets each...
-Saved 200 nodes, 800 nets to data/test_netlists/
-Saved 200 nodes, 800 nets to data/test_netlists/
-Saved 200 nodes, 800 nets to data/test_netlists/
-Saved 200 nodes, 800 nets to data/test_netlists/
-Saved 200 nodes, 800 nets to data/test_netlists/
-Saved 200 nodes, 800 nets to data/test_netlists/
-Saved 200 nodes, 800 nets to data/test_netlists/
-Saved 200 nodes, 800 nets to data/test_netlists/
-Saved 200 nodes, 800 nets to data/test_netlists/
-Saved 200 nodes, 800 nets to data/test_netlists/
-  Generated 10/10 netlists
-Done! Saved to data/test_netlists/
+Generating 100 netlists with 5000 modules, 5000 nets each...
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 10/100 netlists
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 20/100 netlists
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 30/100 netlists
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 40/100 netlists
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 50/100 netlists
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 60/100 netlists
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 70/100 netlists
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 80/100 netlists
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 90/100 netlists
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+Saved 5000 nodes, 5000 nets to data/netlists/
+  Generated 100/100 netlists
+Done! Saved to data/netlists/

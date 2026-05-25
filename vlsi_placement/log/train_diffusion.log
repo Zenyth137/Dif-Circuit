@@ -6,8 +6,8 @@ GT prefix: gt
 Max modules (GPU cap): 200
 GroundTruthDataset: 100 samples from data/ground_truth/gt_*, max_modules=200
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Denoiser params: 44,514
-Modules: 200, timesteps: 250
+Denoiser params: 274,882
+Modules: 200, timesteps: 1000
 
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -109,7 +109,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 0: loss=1.009853, lr=1.00e-04
+Epoch 0: loss=0.997321, lr=1.00e-04
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -1110,7 +1110,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 10: loss=0.774092, lr=1.00e-04
+Epoch 10: loss=0.799063, lr=1.00e-04
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -2111,7 +2111,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 20: loss=0.666584, lr=9.99e-05
+Epoch 20: loss=0.716431, lr=9.99e-05
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -3112,7 +3112,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 30: loss=0.681905, lr=9.98e-05
+Epoch 30: loss=0.693297, lr=9.98e-05
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -4113,7 +4113,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 40: loss=0.650469, lr=9.96e-05
+Epoch 40: loss=0.679581, lr=9.96e-05
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -5114,7 +5114,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 50: loss=0.621099, lr=9.94e-05
+Epoch 50: loss=0.622624, lr=9.94e-05
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -6115,7 +6115,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 60: loss=0.643123, lr=9.91e-05
+Epoch 60: loss=0.604808, lr=9.91e-05
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -7116,7 +7116,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 70: loss=0.647707, lr=9.88e-05
+Epoch 70: loss=0.605948, lr=9.88e-05
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -8117,7 +8117,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 80: loss=0.604677, lr=9.84e-05
+Epoch 80: loss=0.602817, lr=9.84e-05
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
@@ -9118,7 +9118,7 @@ Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
-Epoch 90: loss=0.600605, lr=9.80e-05
+Epoch 90: loss=0.580779, lr=9.80e-05
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/
 Loaded 200 nodes, 800 nets from data/ground_truth/

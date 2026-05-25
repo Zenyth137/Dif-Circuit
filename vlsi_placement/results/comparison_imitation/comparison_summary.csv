@@ -1,0 +1,4 @@
+Method,HPWL (mean),HPWL (std),Overlap % (mean),Overlap % (std),Congestion (mean),Runtime (mean),Runtime (std)
+SA,5639,396,100.00,0.00,12.4756,1.7s,0.1s
+Analytical,505682,32668,39.09,14.34,1.8471,0.0s,0.0s
+MDP,197,211,100.00,0.00,12.4756,1.7s,0.1s

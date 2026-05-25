@@ -71,6 +71,14 @@ diffusion_training:
   ema_decay: 0.9999
   max_grad_norm: 1.0
 
+# ---- Curiosity (ICM) ----
+curiosity:
+  curiosity_eta: 0.5              # intrinsic reward weight (0 = disable ICM)
+  curiosity_lr: 0.0001
+  curiosity_hidden: 256
+  curiosity_forward_weight: 1.0
+  curiosity_inverse_weight: 0.2
+
 # ---- General ----
 num_iterations: 1000
 episodes_per_iter: 16

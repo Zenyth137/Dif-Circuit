@@ -25,6 +25,8 @@ def main():
     parser.add_argument("--config", type=str, default="configs/mdp_train.yaml")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--save-path", type=str, default="checkpoints/mdp_policy.pt")
+    parser.add_argument("--pretrained", type=str, default=None,
+                        help="Path to pretrained checkpoint (from imitation learning)")
     args = parser.parse_args()
 
     # Load config
@@ -44,12 +46,22 @@ def main():
     # Policy network
     policy = PolicyNet(**cfg.get("policy", {}))
 
-    # Trainer
+    # Load pretrained weights (from imitation learning)
+    if args.pretrained:
+        print(f"Loading pretrained policy from {args.pretrained}")
+        ckpt = torch.load(args.pretrained, map_location=args.device)
+        policy.load_state_dict(ckpt["policy_state_dict"])
+        print(f"  Pretrained loss: {ckpt.get('loss', 'N/A')}")
+
+    # Trainer (with optional curiosity)
+    ppo_cfg = cfg.get("ppo", {})
+    curiosity_cfg = cfg.get("curiosity", {})
     trainer = PPOTrainer(
         policy_net=policy,
         env_config=env_cfg,
         device=args.device,
-        **cfg.get("ppo", {}),
+        **ppo_cfg,
+        **curiosity_cfg,
     )
 
     print(f"Policy params: {sum(p.numel() for p in policy.parameters()):,}")

@@ -1,0 +1,111 @@
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Warning: netlist_0010 not found, skipping
+Warning: netlist_0011 not found, skipping
+Warning: netlist_0012 not found, skipping
+Warning: netlist_0013 not found, skipping
+Warning: netlist_0014 not found, skipping
+Warning: netlist_0015 not found, skipping
+Warning: netlist_0016 not found, skipping
+Warning: netlist_0017 not found, skipping
+Warning: netlist_0018 not found, skipping
+Warning: netlist_0019 not found, skipping
+Loaded 10 test netlists
+GPU cap: max_modules=200, diffusion steps=50
+Loaded MDP policy from vlsi_placement/checkpoints/mdp_policy_finetuned.pt
+
+============================================================
+Netlist 1/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=5405, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=529758, Overlap=28.97%, Time=0.0s
+  Running MDP... /mnt/fuso/DC/vlsi_placement/scripts/../src/models/gnn.py:108: UserWarning: index_reduce() is in beta and the API may change at any time. (Triggered internally at /pytorch/aten/src/ATen/native/cuda/Indexing.cu:1541.)
+  alpha_max.index_reduce_(0, dst, alpha, 'amax', include_self=False)
+done. HPWL=211453, Overlap=100.00%, Time=1.9s
+
+============================================================
+Netlist 2/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=4909, Overlap=100.00%, Time=1.7s
+  Running Analytical... done. HPWL=541931, Overlap=39.67%, Time=0.0s
+  Running MDP... done. HPWL=211266, Overlap=100.00%, Time=1.7s
+
+============================================================
+Netlist 3/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=5687, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=479410, Overlap=30.85%, Time=0.0s
+  Running MDP... done. HPWL=185469, Overlap=100.00%, Time=1.7s
+
+============================================================
+Netlist 4/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=5765, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=553238, Overlap=29.13%, Time=0.0s
+  Running MDP... done. HPWL=197203, Overlap=100.00%, Time=1.6s
+
+============================================================
+Netlist 5/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=5857, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=533795, Overlap=53.82%, Time=0.0s
+  Running MDP... done. HPWL=237266, Overlap=100.00%, Time=1.6s
+
+============================================================
+Netlist 6/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=5420, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=496925, Overlap=44.27%, Time=0.0s
+  Running MDP... done. HPWL=206750, Overlap=100.00%, Time=1.6s
+
+============================================================
+Netlist 7/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=6089, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=510763, Overlap=70.67%, Time=0.0s
+  Running MDP... done. HPWL=248734, Overlap=100.00%, Time=1.6s
+
+============================================================
+Netlist 8/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=6379, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=446285, Overlap=42.94%, Time=0.0s
+  Running MDP... done. HPWL=283625, Overlap=100.00%, Time=1.6s
+
+============================================================
+Netlist 9/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=5302, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=469759, Overlap=33.88%, Time=0.0s
+  Running MDP... done. HPWL=218953, Overlap=100.00%, Time=1.6s
+
+============================================================
+Netlist 10/10: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=5582, Overlap=100.00%, Time=1.6s
+  Running Analytical... done. HPWL=494956, Overlap=16.67%, Time=0.0s
+  Running MDP... done. HPWL=219156, Overlap=100.00%, Time=1.6s
+
+Results saved to vlsi_placement/results/eval_with_mask/
+
+================================================================================
+PLACEMENT METHOD COMPARISON
+================================================================================
+Overlap % = union overlap / total module area (0–100%, physical)
+    Method HPWL (mean) HPWL (std) Overlap % (mean) Overlap % (std) Congestion (mean) Runtime (mean) Runtime (std)
+        SA        5639        396           100.00            0.00           12.4756           1.6s          0.0s
+Analytical      505682      32668            39.09           14.34            1.8471           0.0s          0.0s
+       MDP      221988      26779           100.00            0.00           10.4333           1.7s          0.1s
+================================================================================
+
+Relative to first method (HPWL only):
+  Analytical vs SA: HPWL improvement = -8866.9%
+  MDP vs SA: HPWL improvement = -3836.4%

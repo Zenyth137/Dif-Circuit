@@ -92,6 +92,7 @@ class MacroPlacementEnv:
         )
 
         self._done = False
+        self._partial_hpwl = 0.0    # cumulative per-step HPWL for logging
         return self._get_state()
 
     def step(self, action: Tuple[int, int]) -> Tuple[Dict[str, np.ndarray], float, bool, Dict]:
@@ -124,6 +125,10 @@ class MacroPlacementEnv:
         # Advance
         self.current_step += 1
 
+        # ---- Per-step dense reward ----
+        step_reward = self._compute_step_reward(module_id, cx, cy)
+        self._partial_hpwl += step_reward  # track cumulative for logging
+
         # Check termination
         done = (self.current_step >= self.num_modules)
 
@@ -131,13 +136,14 @@ class MacroPlacementEnv:
             reward = self._compute_terminal_reward()
             self._done = True
         else:
-            reward = 0.0  # delayed reward
+            reward = step_reward  # dense per-step reward (HPWL + overlap)
 
         state = self._get_state()
         info = {
             "step": self.current_step,
             "module_id": module_id,
             "position": (cx, cy),
+            "step_reward": step_reward,
         }
 
         return state, reward, done, info
@@ -235,6 +241,63 @@ class MacroPlacementEnv:
             self.cfg.w_hpwl * hpwl
             + self.cfg.w_congestion * congestion
             + self.cfg.w_overlap * overlap
+        )
+        return float(reward)
+
+    def _compute_step_reward(self, module_id: int, cx: float, cy: float) -> float:
+        """
+        Per-step dense reward: incremental HPWL contribution + immediate overlap.
+
+        For each net containing the newly placed module, if all other members are
+        already placed, accumulate the net's HPWL. Also penalize overlap with
+        previously placed modules.
+        """
+        from .reward import compute_hpwl
+
+        if self.nodes is None or self.nets is None:
+            return 0.0
+
+        # ---- Overlap: check against all previously placed modules ----
+        overlap_penalty = 0.0
+        w_cur, h_cur = self.nodes[module_id][1], self.nodes[module_id][2]
+        left_cur = cx - w_cur / 2
+        right_cur = cx + w_cur / 2
+        bottom_cur = cy - h_cur / 2
+        top_cur = cy + h_cur / 2
+
+        for other_id in self.placed_modules:
+            if other_id == module_id:
+                continue
+            ox, oy = self.placed_positions[other_id]
+            ow, oh = self.nodes[other_id][1], self.nodes[other_id][2]
+            left_o = ox - ow / 2
+            right_o = ox + ow / 2
+            bottom_o = oy - oh / 2
+            top_o = oy + oh / 2
+
+            dx = max(0.0, min(right_cur, right_o) - max(left_cur, left_o))
+            dy = max(0.0, min(top_cur, top_o) - max(bottom_cur, bottom_o))
+            overlap_penalty += dx * dy
+
+        # ---- HPWL: nets that are now "complete" ----
+        hpwl_contrib = 0.0
+        for net in self.nets:
+            if module_id not in net:
+                continue
+            if not all(m in self.placed_modules for m in net):
+                continue  # not all pins placed yet — wait
+            # All members placed — compute this net's HPWL
+            positions = np.array([
+                [self.placed_positions[m][0], self.placed_positions[m][1]]
+                for m in net
+            ])
+            x_min, y_min = positions.min(axis=0)
+            x_max, y_max = positions.max(axis=0)
+            hpwl_contrib += (x_max - x_min) + (y_max - y_min)
+
+        reward = -(
+            self.cfg.w_hpwl * hpwl_contrib
+            + self.cfg.w_overlap * overlap_penalty
         )
         return float(reward)
 

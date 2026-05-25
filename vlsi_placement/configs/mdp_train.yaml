@@ -11,7 +11,7 @@ environment:
   max_modules: 200
   w_hpwl: 1.0
   w_congestion: 0.5
-  w_overlap: 0.05
+  w_overlap: 500.0  # heavy overlap penalty (was 0.05 — way too low)
 
 policy:
   grid_size: 64
@@ -29,6 +29,14 @@ ppo:
   epochs: 10
   batch_size: 64
 
-num_iterations: 1000
+# Intrinsic Curiosity Module (ICM) for exploration
+curiosity:
+  curiosity_eta: 0.5          # intrinsic reward weight (0 = disable ICM)
+  curiosity_lr: 0.0001         # ICM learning rate
+  curiosity_hidden: 256        # ICM hidden dim
+  curiosity_forward_weight: 1.0
+  curiosity_inverse_weight: 0.2
+
+num_iterations: 2000
 episodes_per_iter: 16
-early_stop_patience: 50
+early_stop_patience: 100

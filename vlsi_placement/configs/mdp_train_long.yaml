@@ -9,7 +9,7 @@ environment:
   max_modules: 200
   w_hpwl: 1.0
   w_congestion: 0.5
-  w_overlap: 0.2
+  w_overlap: 500.0
 
 policy:
   grid_size: 64
@@ -30,3 +30,11 @@ ppo:
 num_iterations: 2000
 episodes_per_iter: 16
 early_stop_patience: 100
+
+# Intrinsic Curiosity Module (ICM) for exploration
+curiosity:
+  curiosity_eta: 0.5
+  curiosity_lr: 0.0001
+  curiosity_hidden: 256
+  curiosity_forward_weight: 1.0
+  curiosity_inverse_weight: 0.2

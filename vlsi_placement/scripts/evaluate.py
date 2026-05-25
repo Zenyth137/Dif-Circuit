@@ -47,7 +47,7 @@ def _run_mdp_placement(policy, env_config, device, nodes, nets, max_modules):
     edge_attr_t = torch.tensor(edge_attr, dtype=torch.float32, device=device)
 
     env = MacroPlacementEnv(env_config)
-    env.reset(nodes, nets)
+    state = env.reset(nodes, nets)
 
     with torch.no_grad():
         _, global_emb = policy.encode_graph(
@@ -56,14 +56,21 @@ def _run_mdp_placement(policy, env_config, device, nodes, nets, max_modules):
         for step in range(env.num_modules):
             w = float(nodes[step, 1])
             h = float(nodes[step, 2])
+            density_tensor = torch.from_numpy(
+                env.density_grid.copy()
+            ).float().to(device)
+            mask = state.get("action_mask")
+            mask_tensor = torch.from_numpy(mask).float().to(device) if mask is not None else None
             result = policy.get_action(
                 module_features, net_features, edge_index_t, edge_attr_t,
                 w, h, deterministic=True, global_emb=global_emb,
+                density_grid=density_tensor,
+                action_mask=mask_tensor,
             )
             action_idx = int(result["action_idx"].item())
             gy = action_idx % env.grid_size
             gx = action_idx // env.grid_size
-            env.step((gx, gy))
+            state, _, _, _ = env.step((gx, gy))
 
     return env.get_placement()
 

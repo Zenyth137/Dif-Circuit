@@ -147,7 +147,6 @@ class DiffusionPlacer(nn.Module):
 
         return lambda_ovlp, lambda_hpwl
 
-    @torch.no_grad()
     def sample(self,
                x_k: torch.Tensor,
                module_sizes: torch.Tensor,
@@ -208,16 +207,18 @@ class DiffusionPlacer(nn.Module):
             self.energy_fn.lambda_hpwl = lambda_hpwl
 
             # Denoising step
-            eps_pred = self.denoiser(x_t, t, module_sizes, edge_index, edge_attr)
-            coef = (1 - alpha_t) / torch.sqrt(1 - alpha_cumprod_t)
-            x_t = (1.0 / torch.sqrt(alpha_t)) * (x_t - coef * eps_pred)
+            with torch.no_grad():
+                eps_pred = self.denoiser(x_t, t, module_sizes, edge_index, edge_attr)
+                coef = (1 - alpha_t) / torch.sqrt(1 - alpha_cumprod_t)
+                x_t = (1.0 / torch.sqrt(alpha_t)) * (x_t - coef * eps_pred)
 
             # Energy guidance with gradient clipping
             if self.guidance_scale > 0 and nets is not None:
-                x_for_energy = x_t.detach().requires_grad_(True)
-                energy_grad = self.energy_fn.gradient(
-                    x_for_energy, module_sizes, nets,
-                )
+                with torch.enable_grad():
+                    x_for_energy = x_t.detach().requires_grad_(True)
+                    energy_grad = self.energy_fn.gradient(
+                        x_for_energy, module_sizes, nets,
+                    )
                 # --- GRADIENT CLIPPING: prevent "Big Bang" ---
                 # Smooth tanh saturation — no dead zones, everywhere differentiable.
                 # |grad| << max_norm → linear (no distortion)
@@ -228,13 +229,14 @@ class DiffusionPlacer(nn.Module):
                 x_t = x_t - self.guidance_scale * energy_grad
 
             # Noise injection
-            if t_idx > 1:
-                sigma_t = torch.sqrt(beta_t)
-                x_t = x_t + torch.randn_like(x_t) * sigma_t
+            with torch.no_grad():
+                if t_idx > 1:
+                    sigma_t = torch.sqrt(beta_t)
+                    x_t = x_t + torch.randn_like(x_t) * sigma_t
 
-            # Canvas bounds
-            x_t[:, 0] = torch.clamp(x_t[:, 0], 0.0, self.canvas_width)
-            x_t[:, 1] = torch.clamp(x_t[:, 1], 0.0, self.canvas_height)
+                # Canvas bounds
+                x_t[:, 0] = torch.clamp(x_t[:, 0], 0.0, self.canvas_width)
+                x_t[:, 1] = torch.clamp(x_t[:, 1], 0.0, self.canvas_height)
 
             if return_trajectory:
                 trajectory.append(x_t.clone())

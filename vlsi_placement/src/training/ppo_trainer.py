@@ -24,6 +24,7 @@ import time
 from tqdm import tqdm
 
 from ..models.policy_net import PolicyNet
+from ..models.curiosity import ICM, RunningNormalizer
 from ..environment.mdp_env import MacroPlacementEnv, EnvConfig
 from ..netlist.generator import NetlistGenerator, NetlistConfig
 
@@ -92,7 +93,13 @@ class PPOTrainer:
                  epochs: int = 10,
                  batch_size: int = 64,
                  max_grad_norm: float = 1.0,
-                 device: str = "cpu"):
+                 device: str = "cpu",
+                 # Curiosity / ICM
+                 curiosity_eta: float = 1.0,
+                 curiosity_lr: float = 1e-4,
+                 curiosity_hidden: int = 256,
+                 curiosity_forward_weight: float = 1.0,
+                 curiosity_inverse_weight: float = 0.2):
         self.policy = policy_net.to(device)
         self.env_config = env_config
         self.env = MacroPlacementEnv(env_config)
@@ -110,6 +117,24 @@ class PPOTrainer:
         self.optimizer = optim.Adam(self.policy.parameters(), lr=lr)
         self.buffer = PPOBuffer()
 
+        # Curiosity module (ICM)
+        self.curiosity_eta = curiosity_eta
+        self.curiosity_forward_weight = curiosity_forward_weight
+        self.curiosity_inverse_weight = curiosity_inverse_weight
+        if curiosity_eta > 0:
+            action_dim = env_config.grid_size * env_config.grid_size
+            self.icm = ICM(
+                state_dim=policy_net.hidden_dim,
+                action_dim=action_dim,
+                hidden_dim=curiosity_hidden,
+            ).to(device)
+            self.icm_optimizer = optim.Adam(self.icm.parameters(), lr=curiosity_lr)
+            self.intr_normalizer = RunningNormalizer()
+        else:
+            self.icm = None
+            self.icm_optimizer = None
+            self.intr_normalizer = None
+
         # Metrics tracking
         self.episode_rewards: deque = deque(maxlen=100)
         self.episode_hpwls: deque = deque(maxlen=100)
@@ -120,8 +145,11 @@ class PPOTrainer:
         """
         Collect one episode of experience.
 
+        With ICM enabled, intrinsic rewards (forward-dynamics prediction error)
+        are added to each step's extrinsic reward to encourage exploration.
+
         Returns:
-            episode_reward: total terminal reward
+            episode_reward: total (extrinsic + intrinsic) reward
         """
         # Generate a netlist sized for the MDP (avoid full 5k-node GNN graphs)
         nodes, nets = generator.generate()
@@ -135,7 +163,7 @@ class PPOTrainer:
         edge_attr_t = torch.tensor(edge_attr, dtype=torch.float32, device=self.device)
 
         # Reset environment
-        self.env.reset(nodes, nets)
+        env_state = self.env.reset(nodes, nets)
 
         # One GNN forward per episode; detach so PPO can replay the buffer for
         # multiple epochs without "backward through the graph a second time".
@@ -147,13 +175,27 @@ class PPOTrainer:
         episode_reward = 0.0
         total_hpwl = 0.0
 
+        prev_state_feat = None
+        prev_action_idx = None
+
         for step in range(self.env.num_modules):
             current_module = nodes[step]
             w, h = float(current_module[1]), float(current_module[2])
 
+            # Build density grid tensor for current state
+            density_tensor = torch.from_numpy(
+                self.env.density_grid.copy()
+            ).float().to(self.device)
+
+            # Action mask from environment (block occupied cells)
+            mask = env_state.get("action_mask")
+            mask_tensor = torch.from_numpy(mask).float().to(self.device) if mask is not None else None
+
             result = self.policy.get_action(
                 module_features, net_features, edge_index_t, edge_attr_t,
                 w, h, deterministic=deterministic, global_emb=global_emb,
+                density_grid=density_tensor,
+                action_mask=mask_tensor,
             )
 
             action_idx = result["action_idx"]
@@ -161,23 +203,48 @@ class PPOTrainer:
             value = result["value"]
             state_feat = result["state_feat"]
 
+            # ---- Intrinsic curiosity reward for the PREVIOUS transition ----
+            if prev_state_feat is not None and self.icm is not None:
+                with torch.no_grad():
+                    intr_reward, _, _ = self.icm(
+                        prev_state_feat.unsqueeze(0),
+                        prev_action_idx.view(1),
+                        state_feat.detach().unsqueeze(0),
+                    )
+                intr_val = intr_reward.item()
+
+                # Update running normalizer with raw intrinsic reward
+                self.intr_normalizer.update(torch.tensor([intr_val]))
+                intr_norm = self.intr_normalizer.normalize(
+                    torch.tensor(intr_val)
+                ).item()
+
+                # Add normalized intrinsic reward to the previous step's reward
+                bonus = self.curiosity_eta * intr_norm
+                if not (np.isnan(bonus) or np.isinf(bonus)):
+                    self.buffer.rewards[-1] += bonus
+                    episode_reward += bonus
+
             # Convert action_idx to grid position
             action_idx_int = int(action_idx.item())
             gy = action_idx_int % self.env.grid_size
             gx = action_idx_int // self.env.grid_size
 
             # Step environment
-            state, reward, done, info = self.env.step((gx, gy))
+            env_state, reward, done, info = self.env.step((gx, gy))
             episode_reward += reward
 
             self.buffer.store(
                 state_feat.detach(),
-                action_idx.view(()),
+                action_idx.detach().view(()),
                 log_prob.detach().view(()),
                 reward,
                 value.detach().view(()),
                 done,
             )
+
+            prev_state_feat = state_feat.detach()
+            prev_action_idx = action_idx.detach()
 
         # Compute final HPWL for logging
         final_positions = self.env.get_placement()
@@ -214,10 +281,16 @@ class PPOTrainer:
         return advantages, returns
 
     def update(self) -> Dict[str, float]:
-        """Perform one PPO update epoch."""
+        """Perform one PPO update epoch + ICM update."""
         if len(self.buffer) == 0:
             return {}
 
+        # ---- ICM update (before PPO — on the same rollout data) ----
+        icm_metrics = {}
+        if self.icm is not None and len(self.buffer) >= 2:
+            icm_metrics = self._update_icm()
+
+        # ---- PPO update ----
         advantages, returns = self.compute_gae()
 
         states = torch.stack(self.buffer.states)
@@ -273,11 +346,13 @@ class PPOTrainer:
                 total_entropy += entropy.item()
 
         num_updates = self.epochs * max(1, len(states) // self.batch_size)
-        return {
+        metrics = {
             "policy_loss": total_policy_loss / num_updates,
             "value_loss": total_value_loss / num_updates,
             "entropy": total_entropy / num_updates,
         }
+        metrics.update(icm_metrics)
+        return metrics
 
     def train(self,
               generator: NetlistGenerator,
@@ -342,12 +417,16 @@ class PPOTrainer:
                     save_dir = os.path.dirname(save_path)
                     if save_dir:
                         os.makedirs(save_dir, exist_ok=True)
-                    torch.save({
+                    checkpoint = {
                         "policy_state_dict": self.policy.state_dict(),
                         "optimizer_state_dict": self.optimizer.state_dict(),
                         "iteration": iteration,
                         "best_reward": best_reward,
-                    }, save_path)
+                    }
+                    if self.icm is not None:
+                        checkpoint["icm_state_dict"] = self.icm.state_dict()
+                        checkpoint["icm_optimizer_state_dict"] = self.icm_optimizer.state_dict()
+                    torch.save(checkpoint, save_path)
             else:
                 patience_counter += 1
 
@@ -377,3 +456,20 @@ class PPOTrainer:
             "mean_hpwl": np.mean(hpwls) if hpwls else 0.0,
             "std_hpwl": np.std(hpwls) if hpwls else 0.0,
         }
+
+    def _update_icm(self) -> Dict[str, float]:
+        """Update ICM on stored transition pairs (s_t, a_t, s_{t+1})."""
+        states_t = torch.stack(self.buffer.states[:-1])
+        actions_t = torch.stack(self.buffer.actions[:-1])
+        states_next = torch.stack(self.buffer.states[1:])
+
+        self.icm_optimizer.zero_grad()
+        loss, metrics = self.icm.compute_loss(
+            states_t, actions_t, states_next,
+            forward_weight=self.curiosity_forward_weight,
+            inverse_weight=self.curiosity_inverse_weight,
+        )
+        loss.backward()
+        self.icm_optimizer.step()
+
+        return {f"icm_{k}": v for k, v in metrics.items()}

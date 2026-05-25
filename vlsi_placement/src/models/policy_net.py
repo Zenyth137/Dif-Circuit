@@ -123,6 +123,41 @@ class ValueHead(nn.Module):
         return self.net(features).squeeze(-1)
 
 
+class DensityEncoder(nn.Module):
+    """Small CNN encoder for density grid → feature vector."""
+
+    def __init__(self, grid_size: int, out_dim: int):
+        super().__init__()
+        self.grid_size = grid_size
+        self.out_dim = out_dim
+        self.conv = nn.Sequential(
+            nn.Conv2d(1, 8, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(8, 16, 3, padding=1),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d(4),
+            nn.Flatten(),
+            nn.Linear(16 * 4 * 4, out_dim),
+            nn.ReLU(),
+        )
+
+    def forward(self, density_grid: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            density_grid: (B, G, G) or (G, G)
+        Returns:
+            features: (B, out_dim) or (out_dim,)
+        """
+        if density_grid.dim() == 2:
+            density_grid = density_grid.unsqueeze(0).unsqueeze(0)  # (1, 1, G, G)
+        elif density_grid.dim() == 3:
+            density_grid = density_grid.unsqueeze(1)  # (B, 1, G, G)
+        out = self.conv(density_grid)
+        if out.size(0) == 1:
+            out = out.squeeze(0)
+        return out
+
+
 class PolicyNet(nn.Module):
     """
     Full Actor-Critic Policy Network.
@@ -130,6 +165,8 @@ class PolicyNet(nn.Module):
     Encodes netlist topology via Edge-GNN, then produces:
       - Action distribution over grid positions
       - State value estimate
+
+    State = [module_w, module_h, global_graph_emb, density_grid_features]
     """
 
     def __init__(self,
@@ -151,8 +188,12 @@ class PolicyNet(nn.Module):
             heads=gnn_heads,
         )
 
-        # State feature projector (combines current module + global graph embedding)
-        state_dim = 2 + hidden_dim  # [w, h] + global_graph_emb
+        # Density grid encoder (CNN)
+        self.density_dim = hidden_dim // 4
+        self.density_encoder = DensityEncoder(grid_size, self.density_dim)
+
+        # State feature projector (combines current module + global graph embedding + density features)
+        state_dim = 2 + hidden_dim + self.density_dim  # [w, h] + global_graph_emb + density_feat
         self.state_proj = nn.Sequential(
             nn.Linear(state_dim, hidden_dim),
             nn.ReLU(),
@@ -174,14 +215,25 @@ class PolicyNet(nn.Module):
     def build_state_features(self,
                              global_emb: torch.Tensor,
                              current_module_w: float,
-                             current_module_h: float) -> torch.Tensor:
-        """Project cached graph embedding + current module size into state features."""
+                             current_module_h: float,
+                             density_grid: Optional[torch.Tensor] = None) -> torch.Tensor:
+        """Project graph embedding + current module size + density grid into state features."""
         curr_feat = torch.tensor(
             [current_module_w, current_module_h],
             device=global_emb.device,
             dtype=global_emb.dtype,
         )
-        state_feat = torch.cat([curr_feat, global_emb], dim=-1)
+        parts = [curr_feat, global_emb]
+
+        if density_grid is not None:
+            density_feat = self.density_encoder(density_grid.to(global_emb.device))
+            parts.append(density_feat)
+        else:
+            # No density grid provided — use zeros (for backward compat)
+            density_feat = torch.zeros(self.density_dim, device=global_emb.device, dtype=global_emb.dtype)
+            parts.append(density_feat)
+
+        state_feat = torch.cat(parts, dim=-1)
         return self.state_proj(state_feat)
 
     def get_action(self,
@@ -192,7 +244,9 @@ class PolicyNet(nn.Module):
                    current_module_w: float,
                    current_module_h: float,
                    deterministic: bool = False,
-                   global_emb: Optional[torch.Tensor] = None) -> Dict[str, torch.Tensor]:
+                   global_emb: Optional[torch.Tensor] = None,
+                   density_grid: Optional[torch.Tensor] = None,
+                   action_mask: Optional[torch.Tensor] = None) -> Dict[str, torch.Tensor]:
         """
         Get action for the current step.
 
@@ -203,6 +257,8 @@ class PolicyNet(nn.Module):
             edge_attr: (E, 1) edge weights
             current_module_w, current_module_h: size of module to place
             global_emb: optional pre-computed graph embedding (avoids re-running GNN)
+            density_grid: (G, G) current density grid tensor
+            action_mask: (G, G) 1.0=legal, 0.0=illegal — masks occupied grid cells
 
         Returns:
             dict with 'action_idx', 'log_prob', 'value', 'state_feat'
@@ -213,11 +269,11 @@ class PolicyNet(nn.Module):
             )
 
         state_feat = self.build_state_features(
-            global_emb, current_module_w, current_module_h
+            global_emb, current_module_w, current_module_h, density_grid
         )
 
         action_idx, log_prob = self.policy_head.sample(
-            state_feat, deterministic=deterministic
+            state_feat, deterministic=deterministic, action_mask=action_mask
         )
         value = self.value_head(state_feat)
 
@@ -244,10 +300,11 @@ class PolicyNet(nn.Module):
                       edge_attr: torch.Tensor,
                       current_w: float,
                       current_h: float,
-                      global_emb: Optional[torch.Tensor] = None) -> torch.Tensor:
+                      global_emb: Optional[torch.Tensor] = None,
+                      density_grid: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Forward pass to get processed state features for storage."""
         if global_emb is None:
             _, global_emb = self.encode_graph(
                 module_features, net_features, edge_index, edge_attr
             )
-        return self.build_state_features(global_emb, current_w, current_h)
+        return self.build_state_features(global_emb, current_w, current_h, density_grid)
