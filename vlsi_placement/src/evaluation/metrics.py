@@ -78,13 +78,11 @@ def compute_all_metrics(
 
     hpwl = compute_hpwl(positions, nets)
     overlap_pairwise = compute_overlap(positions, nodes)
-    overlap = compute_overlap_union(
-        positions, nodes, canvas_width=canvas_width, canvas_height=canvas_height,
-    )
+    # Use exact pairwise overlap (not rasterization — inaccurate for tightly-packed modules)
     total_module_area = float(np.sum(nodes[:, 1] * nodes[:, 2]))
     canvas_area = canvas_width * canvas_height
     if total_module_area > 0:
-        overlap_pct = min(100.0, overlap / total_module_area * 100.0)
+        overlap_pct = min(100.0, overlap_pairwise / total_module_area * 100.0)
     else:
         overlap_pct = 0.0
     congestion = compute_congestion(positions, nodes,
@@ -94,7 +92,7 @@ def compute_all_metrics(
 
     return PlacementMetrics(
         hpwl=hpwl,
-        overlap_area=overlap,
+        overlap_area=overlap_pairwise,
         overlap_pct=overlap_pct,
         overlap_pairwise_sum=overlap_pairwise,
         congestion=congestion,

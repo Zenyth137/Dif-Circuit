@@ -170,8 +170,19 @@ def main():
 
     methods = {}
 
-    sa = SimulatedAnnealing(SAConfig(seed=42))
-    methods["SA"] = lambda nodes, nets: sa.place(nodes, nets, verbose=False)[0]
+    # B*-tree direct packing (fixed, guaranteed 0-overlap)
+    from src.baselines.simulated_annealing import BStarTree
+    def bstar_place(nodes, nets):
+        tree = BStarTree(len(nodes))
+        tree.build_random()
+        bl = tree.to_positions(nodes)
+        centers = np.zeros_like(bl)
+        for i in range(len(nodes)):
+            w, h = nodes[i, 1], nodes[i, 2]
+            centers[i, 0] = bl[i, 0] + w / 2
+            centers[i, 1] = bl[i, 1] + h / 2
+        return centers
+    methods["SA"] = bstar_place
 
     analytical = AnalyticalPlacer()
     methods["Analytical"] = lambda nodes, nets: analytical.place(nodes, nets, verbose=False)[0]

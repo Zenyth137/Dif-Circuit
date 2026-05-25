@@ -1,0 +1,49 @@
+Loaded 200 nodes, 800 nets from vlsi_placement/data/test_netlists/
+Loaded 1 test netlists
+GPU cap: max_modules=200, diffusion steps=50
+Loaded MDP policy from vlsi_placement/checkpoints/mdp_policy_finetuned.pt
+Diffusion architecture (checkpoint metadata): hidden_dim=128, num_layers=4, timesteps=1000
+Loaded diffusion EMA weights from checkpoint
+Loaded diffusion model from vlsi_placement/checkpoints/diffusion.pt
+
+============================================================
+Netlist 1/1: 200 modules, 800 nets
+============================================================
+  Running SA... done. HPWL=136828, Overlap=0.00%, Time=0.0s
+  Running Analytical... done. HPWL=529758, Overlap=0.00%, Time=0.0s
+  Running MDP... /mnt/fuso/DC/vlsi_placement/scripts/../src/models/gnn.py:108: UserWarning: index_reduce() is in beta and the API may change at any time. (Triggered internally at /pytorch/aten/src/ATen/native/cuda/Indexing.cu:1541.)
+  alpha_max.index_reduce_(0, dst, alpha, 'amax', include_self=False)
+done. HPWL=436141, Overlap=6.78%, Time=1.8s
+  Running MDP+Diffusion... [Variance Alignment] Grid cell: 15.62×15.62, quantization var: 40.6901, matched K=999 (1-ᾶ_K=0.9968)
+done. HPWL=414353, Overlap=0.03%, Time=212.6s
+
+Results saved to vlsi_placement/results/eval_final/
+
+================================================================================
+PLACEMENT METHOD COMPARISON
+================================================================================
+Overlap % = union overlap / total module area (0–100%, physical)
+       Method HPWL (mean) HPWL (std) Overlap % (mean) Overlap % (std) Congestion (mean) Runtime (mean) Runtime (std)
+           SA      136828          0             0.00            0.00            7.8468           0.0s          0.0s
+   Analytical      529758          0             0.00            0.00            1.2873           0.0s          0.0s
+          MDP      436141          0             6.78            0.00            3.3669           1.8s          0.0s
+MDP+Diffusion      414353          0             0.03            0.00            3.6670         212.6s          0.0s
+================================================================================
+
+================================================================================
+MDP+Diffusion vs MDP (per netlist)
+================================================================================
+ Netlist     ΔHPWL%    MDP Ov%   Diff Ov%     ΔOv pp
+--------------------------------------------------------------------------------
+       1       +5.0       6.78       0.03      +6.75
+--------------------------------------------------------------------------------
+    MEAN       +5.0                            +6.75
+
+  ΔHPWL% > 0  → diffusion lowered wirelength vs MDP
+  ΔOv pp > 0  → diffusion reduced overlap % vs MDP
+================================================================================
+
+Relative to first method (HPWL only):
+  Analytical vs SA: HPWL improvement = -287.2%
+  MDP vs SA: HPWL improvement = -218.8%
+  MDP+Diffusion vs SA: HPWL improvement = -202.8%
